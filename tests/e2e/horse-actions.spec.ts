@@ -1,9 +1,9 @@
 import { expect, type Page, test } from "@playwright/test";
 
 async function gotoFirstHorse(page: Page) {
-  await page.goto("/horses");
+  await page.goto("/horses/all-horses");
   await page.waitForSelector(".ag-row", { timeout: 10_000 });
-  const cell = page.locator(".ag-row").first().locator(".ag-cell").nth(1);
+  const cell = page.locator(".ag-row").first().locator(".ag-cell").nth(2);
   await cell.evaluate((el) => {
     const opts = { bubbles: true, cancelable: true, view: window } as const;
     el.dispatchEvent(new MouseEvent("mousedown", opts));

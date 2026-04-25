@@ -17,9 +17,8 @@ test.describe("Yard map", () => {
     await expect(page.getByTestId("stable-sheet")).toBeVisible();
   });
 
-  test("Grid view toggles to AG Grid @e2e:yard-map", async ({ page }) => {
-    await page.goto("/stables");
-    await page.getByTestId("stables-view-grid").click();
+  test("Stables grid route renders the AG Grid @e2e:yard-map", async ({ page }) => {
+    await page.goto("/stables/all-stables");
     await expect(page.getByTestId("stables-grid")).toBeVisible();
   });
 });

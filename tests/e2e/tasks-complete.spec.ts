@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Tasks completion", () => {
   test("complete a single task via row button @e2e:tasks", async ({ page }) => {
-    await page.goto("/tasks");
+    await page.goto("/tasks/all-tasks");
     await page.waitForSelector(".ag-row", { timeout: 10_000 });
     // Find the first complete button (only present on non-completed rows)
     const completeBtn = page.locator('[data-testid^="tasks-grid-complete-"]').first();
@@ -14,7 +14,7 @@ test.describe("Tasks completion", () => {
   });
 
   test("bulk select shows the bulk action bar @e2e:tasks", async ({ page }) => {
-    await page.goto("/tasks");
+    await page.goto("/tasks/all-tasks");
     await page.waitForSelector(".ag-row", { timeout: 10_000 });
     // Click the AG Grid checkbox input directly — most reliable across webkit + mobile.
     const checkboxCell = page.locator(".ag-row").first().locator('[col-id="__select"]').first();

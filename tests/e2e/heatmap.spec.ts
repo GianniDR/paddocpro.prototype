@@ -1,11 +1,10 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Health heatmap", () => {
-  test("renders KPIs and per-horse cells, drills to horse @e2e:heatmap", async ({ page }) => {
+  test("renders heatmap and drills to horse @e2e:heatmap", async ({ page }) => {
     await page.goto("/health");
-    await expect(page.getByTestId("health-shell")).toBeVisible();
 
-    // The heatmap toggle is the default view
+    // The heatmap is now part of the Health Dashboard at /health
     await expect(page.getByTestId("health-heatmap")).toBeVisible();
 
     // At least one drill-to-horse link rendered
@@ -18,9 +17,8 @@ test.describe("Health heatmap", () => {
     await page.waitForURL(/\/horses\/horse_[a-z0-9-]+/, { timeout: 10_000 });
   });
 
-  test("toggle to All events grid @e2e:heatmap", async ({ page }) => {
-    await page.goto("/health");
-    await page.getByTestId("health-view-list").dispatchEvent("click");
+  test("All events grid route renders rows @e2e:heatmap", async ({ page }) => {
+    await page.goto("/health/all-events");
     await page.waitForSelector(".ag-row", { timeout: 10_000 });
     expect(await page.locator(".ag-row").count()).toBeGreaterThan(0);
   });

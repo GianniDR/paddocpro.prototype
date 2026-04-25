@@ -1,9 +1,9 @@
 import { expect, type Page, test } from "@playwright/test";
 
 async function gotoFirstHorse(page: Page) {
-  await page.goto("/horses");
+  await page.goto("/horses/all-horses");
   await page.waitForSelector(".ag-row", { timeout: 10_000 });
-  const cell = page.locator(".ag-row").first().locator(".ag-cell").nth(1);
+  const cell = page.locator(".ag-row").first().locator(".ag-cell").nth(2);
   await cell.evaluate((el) => {
     const opts = { bubbles: true, cancelable: true, view: window } as const;
     el.dispatchEvent(new MouseEvent("mousedown", opts));
@@ -40,7 +40,11 @@ test.describe("Horse archive", () => {
 
     await trigger.dispatchEvent("click");
     await page.getByTestId("dialog-archive-horse-confirm").dispatchEvent("click");
-    await page.waitForURL(/\/horses$/, { timeout: 10_000 });
+    // After archiving, the horse is removed and the user is sent back to the
+    // horses index. The new shape redirects to the dashboard at /horses; we
+    // navigate explicitly to the grid to verify the horse is gone.
+    await page.waitForURL(/\/horses(\/all-horses)?$/, { timeout: 10_000 });
+    await page.goto("/horses/all-horses");
 
     // The archived horse should no longer be present in the active grid
     if (id) {

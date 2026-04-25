@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 async function openFirstUnpaidInvoice(page: Page) {
-  await page.goto("/finance");
+  await page.goto("/finance/all-invoices");
   await page.waitForSelector(".ag-row", { timeout: 10_000 });
   // Find a row whose status cell is NOT "paid" or "voided".
   const rows = page.locator(".ag-row");
@@ -10,7 +10,7 @@ async function openFirstUnpaidInvoice(page: Page) {
     const row = rows.nth(i);
     const text = (await row.textContent()) ?? "";
     if (!/paid|voided/i.test(text)) {
-      await row.locator(".ag-cell").nth(1).evaluate((el) => {
+      await row.locator(".ag-cell").nth(2).evaluate((el) => {
         const opts = { bubbles: true, cancelable: true, view: window } as const;
         el.dispatchEvent(new MouseEvent("mousedown", opts));
         el.dispatchEvent(new MouseEvent("mouseup", opts));

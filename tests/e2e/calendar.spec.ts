@@ -9,9 +9,8 @@ test.describe("Bookings calendar week view", () => {
     expect(await blocks.count()).toBeGreaterThanOrEqual(0);
   });
 
-  test("toggle to list view @e2e:bookings", async ({ page }) => {
-    await page.goto("/bookings");
-    await page.getByTestId("bookings-view-list").click();
+  test("Bookings grid route renders the AG Grid @e2e:bookings", async ({ page }) => {
+    await page.goto("/bookings/all-bookings");
     await expect(page.getByTestId("bookings-grid")).toBeVisible();
   });
 

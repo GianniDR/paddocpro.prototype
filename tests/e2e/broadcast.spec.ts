@@ -18,10 +18,11 @@ test.describe("Communication broadcast", () => {
     await expect(page.getByTestId("dialog-broadcast")).toBeHidden();
   });
 
-  test("notifications log link works @e2e:broadcast", async ({ page }) => {
-    await page.goto("/communication");
-    await page.getByTestId("comms-notifications-link").click();
-    await page.waitForURL(/\/communication\/notifications$/);
+  test("notifications log route renders @e2e:broadcast", async ({ page }) => {
+    // The old /communication shell linked to /communication/notifications. The
+    // dashboard does not include that link, but the route still works — assert
+    // the grid renders directly.
+    await page.goto("/communication/notifications");
     await expect(page.getByTestId("notifications-grid")).toBeVisible();
   });
 });

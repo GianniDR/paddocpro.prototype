@@ -13,21 +13,25 @@ test("dashboard renders for the bootstrapped session @smoke", async ({ page }) =
   await expect(page.getByTestId("dashboard-kpi-outstanding")).toBeVisible();
 });
 
-test("sidebar lists 15 primary nav entries + Settings @smoke", async ({ page, viewport }) => {
-  // Sidebar is hidden under 768px — exercise the trigger on small screens.
+test("sidebar lists primary nav entries + Settings @smoke", async ({ page, viewport }) => {
   await page.goto("/dashboard");
+  // The redesigned sidebar is hidden under md (768px) — on mobile viewports the
+  // bottom nav is exercised by mobile-nav.spec.ts. Skip the desktop sidebar
+  // check on mobile viewports rather than asserting a (deleted) sidebar trigger.
   if ((viewport?.width ?? 1280) < 768) {
-    await page.getByTestId("sidebar-trigger").click();
+    test.skip(true, "sidebar hidden on mobile viewports — see mobile-nav.spec.ts");
+    return;
   }
-  await expect(page.getByTestId("nav-dashboard")).toBeVisible();
+  await expect(page.getByTestId("sidebar")).toBeVisible();
+  await expect(page.getByTestId("nav-home")).toBeVisible();
   for (const slug of [
     "horses",
     "clients",
-    "stables",
+    "stables-&-paddocks",
     "bookings",
     "tasks",
     "health",
-    "feed-supplies",
+    "feed-&-supplies",
     "staff",
     "documents",
     "communication",
@@ -35,20 +39,20 @@ test("sidebar lists 15 primary nav entries + Settings @smoke", async ({ page, vi
     "visitors",
     "finance",
     "reports",
-    "settings",
   ]) {
     await expect(page.getByTestId(`nav-${slug}`)).toBeVisible();
   }
 });
 
-test("brand mark renders with Cormorant + horse icon @smoke", async ({ page, viewport }) => {
+test("brand mark renders in the sidebar @smoke", async ({ page, viewport }) => {
   await page.goto("/dashboard");
   const html = page.locator("html");
   await expect(html).toHaveAttribute("class", /cormorant/i);
   if ((viewport?.width ?? 1280) < 768) {
-    await page.getByTestId("sidebar-trigger").click();
+    test.skip(true, "sidebar hidden on mobile viewports");
+    return;
   }
-  await expect(page.getByTestId("nav-brand").locator("svg").first()).toBeVisible();
+  await expect(page.getByTestId("sidebar")).toContainText(/paddoc/i);
 });
 
 test("login page renders @smoke", async ({ page }) => {

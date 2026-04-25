@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Sign-in visitor", () => {
   test("dialog opens, validates name + purpose @e2e:visitor-signin", async ({ page }) => {
-    await page.goto("/visitors");
+    await page.goto("/visitors/all-visitors");
     await page.getByTestId("visitors-signin-trigger").click();
     await expect(page.getByTestId("dialog-signin-visitor")).toBeVisible();
     const submit = page.getByTestId("dialog-signin-submit");

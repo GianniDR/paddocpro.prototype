@@ -1,9 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 async function openFirstVacantStable(page: Page) {
-  await page.goto("/stables");
-  // Default view is the yard map — switch to grid for deterministic row picking
-  await page.getByTestId("stables-view-grid").dispatchEvent("click");
+  await page.goto("/stables/all-stables");
   await page.waitForSelector(".ag-row", { timeout: 10_000 });
   const rows = page.locator(".ag-row");
   const count = await rows.count();
@@ -11,7 +9,7 @@ async function openFirstVacantStable(page: Page) {
     const row = rows.nth(i);
     const text = (await row.textContent()) ?? "";
     if (/vacant/i.test(text)) {
-      await row.locator(".ag-cell").nth(1).evaluate((el) => {
+      await row.locator(".ag-cell").nth(2).evaluate((el) => {
         const opts = { bubbles: true, cancelable: true, view: window } as const;
         el.dispatchEvent(new MouseEvent("mousedown", opts));
         el.dispatchEvent(new MouseEvent("mouseup", opts));
