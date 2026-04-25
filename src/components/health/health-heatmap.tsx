@@ -74,7 +74,7 @@ export function HealthHeatmap() {
   }, [rows]);
 
   return (
-    <div className="flex flex-col gap-4 p-4 pb-12 flex-1" data-testid="health-heatmap">
+    <div className="flex flex-col gap-4 flex-1" data-testid="health-heatmap">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {KINDS.map((k) => {
           const c = counts[k.id];

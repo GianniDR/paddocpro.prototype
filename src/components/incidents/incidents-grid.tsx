@@ -1,13 +1,16 @@
 "use client";
 
 import type { ColDef } from "ag-grid-community";
-import { useMemo } from "react";
+import { Plus } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { IncidentWorkflowStepper } from "@/components/incidents/incident-workflow";
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
 import { FeatureGrid } from "@/components/shell/feature-grid";
+import { FeatureToolbar } from "@/components/shell/feature-toolbar";
 import { GenericDetail } from "@/components/shell/generic-detail";
 import { StatusBadge } from "@/components/shell/status-badge";
+import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth/current";
 import { formatDateTime } from "@/lib/format";
@@ -21,6 +24,7 @@ interface Row {
   occurredAt: string;
   workflowState: string;
   linkedHorse: string;
+  location: string;
 }
 
 export function IncidentsGrid() {
@@ -28,6 +32,8 @@ export function IncidentsGrid() {
   const session = useSession();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [selectedId, setSelectedId] = useIdParam();
+  const [search, setSearch] = useState("");
+  const [active, setActive] = useState<Set<string>>(new Set(["all"]));
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -43,9 +49,52 @@ export function IncidentsGrid() {
           occurredAt: i.occurredAt,
           workflowState: i.workflowState,
           linkedHorse: horse?.stableName ?? "—",
+          location: i.location,
         };
       });
   }, [dataset, tenantId]);
+
+  const counts = useMemo(
+    () => ({
+      all: rows.length,
+      critical: rows.filter((r) => r.severity === "critical").length,
+      serious: rows.filter((r) => r.severity === "serious").length,
+      open: rows.filter((r) => r.workflowState !== "closed").length,
+      closed: rows.filter((r) => r.workflowState === "closed").length,
+    }),
+    [rows],
+  );
+
+  const chips: StatusChip[] = [
+    { slug: "all", label: "All", count: counts.all },
+    { slug: "open", label: "Open", count: counts.open },
+    { slug: "critical", label: "Critical", count: counts.critical },
+    { slug: "serious", label: "Serious", count: counts.serious },
+    { slug: "closed", label: "Closed", count: counts.closed },
+  ];
+
+  const filtered = useMemo(() => {
+    if (active.has("all")) return rows;
+    return rows.filter((r) => {
+      if (active.has("open") && r.workflowState !== "closed") return true;
+      if (active.has("critical") && r.severity === "critical") return true;
+      if (active.has("serious") && r.severity === "serious") return true;
+      if (active.has("closed") && r.workflowState === "closed") return true;
+      return false;
+    });
+  }, [rows, active]);
+
+  const toggleChip = (slug: string) => {
+    setActive((prev) => {
+      const next = new Set(prev);
+      if (slug === "all") return new Set(["all"]);
+      next.delete("all");
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      if (next.size === 0) next.add("all");
+      return next;
+    });
+  };
 
   const columnDefs: ColDef<Row>[] = useMemo(
     () => [
@@ -53,17 +102,17 @@ export function IncidentsGrid() {
         field: "severity",
         headerName: "Severity",
         width: 120,
-        pinned: "left",
         cellRenderer: (p: { value?: string }) => <StatusBadge status={p.value ?? "minor"} />,
       },
       { field: "type", headerName: "Type", width: 160 },
       { field: "summary", headerName: "Summary", width: 320 },
       { field: "linkedHorse", headerName: "Horse", width: 160 },
+      { field: "location", headerName: "Location", width: 180 },
       {
         field: "occurredAt",
         headerName: "Occurred",
         width: 180,
-        cellRenderer: (p: { value?: string }) => formatDateTime(p.value),
+        valueFormatter: (p) => formatDateTime(p.value as string),
       },
       {
         field: "workflowState",
@@ -79,18 +128,35 @@ export function IncidentsGrid() {
   const horse = sel?.linkedHorseId ? dataset.horses.find((h) => h.id === sel.linkedHorseId) : null;
 
   return (
-    <div className="flex flex-col gap-3 p-4 pb-12 flex-1">
-      <div className="flex justify-end">
-        <Button size="sm" data-testid="incidents-grid-cta">+ Log incident</Button>
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="px-4 pt-3 flex items-center gap-2">
+        <FeatureToolbar
+          search={search}
+          onSearchChange={setSearch}
+          placeholder="Search incidents, summaries, horses…"
+        >
+          <Button size="sm" data-testid="incidents-grid-cta">
+            <Plus size={14} /> Log incident
+          </Button>
+        </FeatureToolbar>
       </div>
-      <FeatureGrid
-        testId="incidents-grid"
-        rowData={rows}
-        columnDefs={columnDefs}
-        defaultSortField="occurredAt"
-        defaultSortDirection="desc"
-        onRowClick={(r) => setSelectedId(r.id)}
-      />
+
+      <div className="px-4 pt-3 pb-0 flex flex-wrap" data-testid="incidents-grid-chip-row">
+        <StatusChipRow chips={chips} active={active} onToggle={toggleChip} />
+      </div>
+
+      <div className="flex-1 px-4 pt-3 pb-3 overflow-hidden flex flex-col">
+        <FeatureGrid
+          testId="incidents-grid"
+          rowData={filtered}
+          columnDefs={columnDefs}
+          quickFilterText={search}
+          defaultSortField="occurredAt"
+          defaultSortDirection="desc"
+          onRowClick={(r) => setSelectedId(r.id)}
+        />
+      </div>
+
       <DetailSheet
         open={!!sel}
         onClose={() => setSelectedId(null)}
@@ -120,7 +186,13 @@ export function IncidentsGrid() {
             ]}
             drillLinks={
               horse
-                ? [{ label: `Open ${horse.stableName}`, href: `/horses/${horse.id}`, testId: `drill-horse-${horse.id}` }]
+                ? [
+                    {
+                      label: `Open ${horse.stableName}`,
+                      href: `/horses/${horse.id}`,
+                      testId: `drill-horse-${horse.id}`,
+                    },
+                  ]
                 : []
             }
           />

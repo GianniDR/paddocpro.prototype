@@ -1,12 +1,15 @@
 "use client";
 
 import type { ColDef } from "ag-grid-community";
-import { useMemo } from "react";
+import { Plus } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
 import { FeatureGrid } from "@/components/shell/feature-grid";
+import { FeatureToolbar } from "@/components/shell/feature-toolbar";
 import { GenericDetail } from "@/components/shell/generic-detail";
 import { StatusBadge } from "@/components/shell/status-badge";
+import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth/current";
@@ -29,47 +32,93 @@ export function StaffGrid() {
   const session = useSession();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [selectedId, setSelectedId] = useIdParam();
+  const [search, setSearch] = useState("");
+  const [active, setActive] = useState<Set<string>>(new Set(["all"]));
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
     return dataset.users
-      .filter((u) => u.tenantId === tenantId && (u.role === "yard_manager" || u.role === "yard_staff"))
-      .map((u): Row => ({
-        id: u.id,
-        fullName: `${u.firstName} ${u.lastName}`,
-        email: u.email,
-        phone: u.phone,
-        role: u.role.replace("_", " "),
-        status: u.status,
-        initials: u.avatarInitials,
-        lastSeenAt: u.lastSeenAt,
-      }));
+      .filter(
+        (u) => u.tenantId === tenantId && (u.role === "yard_manager" || u.role === "yard_staff"),
+      )
+      .map(
+        (u): Row => ({
+          id: u.id,
+          fullName: `${u.firstName} ${u.lastName}`,
+          email: u.email,
+          phone: u.phone,
+          role: u.role.replace("_", " "),
+          status: u.status,
+          initials: u.avatarInitials,
+          lastSeenAt: u.lastSeenAt,
+        }),
+      );
   }, [dataset, tenantId]);
+
+  const counts = useMemo(
+    () => ({
+      all: rows.length,
+      active: rows.filter((r) => r.status === "active").length,
+      invited: rows.filter((r) => r.status === "invited").length,
+      suspended: rows.filter((r) => r.status === "suspended").length,
+      yard_manager: rows.filter((r) => r.role === "yard manager").length,
+      yard_staff: rows.filter((r) => r.role === "yard staff").length,
+    }),
+    [rows],
+  );
+
+  const chips: StatusChip[] = [
+    { slug: "all", label: "All", count: counts.all },
+    { slug: "active", label: "Active", count: counts.active },
+    { slug: "invited", label: "Invited", count: counts.invited },
+    { slug: "suspended", label: "Suspended", count: counts.suspended },
+    { slug: "yard_manager", label: "Yard managers", count: counts.yard_manager },
+    { slug: "yard_staff", label: "Yard staff", count: counts.yard_staff },
+  ];
+
+  const filtered = useMemo(() => {
+    if (active.has("all")) return rows;
+    return rows.filter((r) => {
+      if (active.has("active") && r.status === "active") return true;
+      if (active.has("invited") && r.status === "invited") return true;
+      if (active.has("suspended") && r.status === "suspended") return true;
+      if (active.has("yard_manager") && r.role === "yard manager") return true;
+      if (active.has("yard_staff") && r.role === "yard staff") return true;
+      return false;
+    });
+  }, [rows, active]);
+
+  const toggleChip = (slug: string) => {
+    setActive((prev) => {
+      const next = new Set(prev);
+      if (slug === "all") return new Set(["all"]);
+      next.delete("all");
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      if (next.size === 0) next.add("all");
+      return next;
+    });
+  };
 
   const columnDefs: ColDef<Row>[] = useMemo(
     () => [
       {
-        field: "fullName",
-        headerName: "Staff",
-        width: 240,
-        pinned: "left",
-        cellRenderer: (p: { data?: Row }) => {
-          if (!p.data) return null;
-          return (
-            <div className="flex items-center gap-2 py-1">
-              <Avatar className="h-7 w-7">
-                <AvatarFallback className="bg-primary/15 text-primary text-xs">
-                  {p.data.initials}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="font-medium leading-tight">{p.data.fullName}</span>
-                <span className="text-[11px] text-muted-foreground leading-tight">{p.data.email}</span>
-              </div>
-            </div>
-          );
-        },
+        colId: "avatar",
+        headerName: "",
+        width: 56,
+        sortable: false,
+        filter: false,
+        cellRenderer: (p: { data?: Row }) =>
+          p.data ? (
+            <Avatar className="h-7 w-7">
+              <AvatarFallback className="bg-primary/15 text-primary text-xs">
+                {p.data.initials}
+              </AvatarFallback>
+            </Avatar>
+          ) : null,
       },
+      { field: "fullName", headerName: "Name", width: 200 },
+      { field: "email", headerName: "Email", width: 240 },
       { field: "role", headerName: "Role", width: 160 },
       { field: "phone", headerName: "Phone", width: 160 },
       {
@@ -82,7 +131,7 @@ export function StaffGrid() {
         field: "lastSeenAt",
         headerName: "Last seen",
         width: 140,
-        cellRenderer: (p: { value?: string | null }) => formatDate(p.value),
+        valueFormatter: (p) => formatDate(p.value as string | null),
       },
     ],
     [],
@@ -92,17 +141,34 @@ export function StaffGrid() {
   const certs = sel ? dataset.certs.filter((c) => c.staffUserId === sel.id) : [];
 
   return (
-    <div className="flex flex-col gap-3 p-4 pb-12 flex-1">
-      <div className="flex justify-end">
-        <Button size="sm" data-testid="staff-grid-cta">+ Invite staff</Button>
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="px-4 pt-3 flex items-center gap-2">
+        <FeatureToolbar
+          search={search}
+          onSearchChange={setSearch}
+          placeholder="Search staff, roles, emails…"
+        >
+          <Button size="sm" data-testid="staff-grid-cta">
+            <Plus size={14} /> Invite staff
+          </Button>
+        </FeatureToolbar>
       </div>
-      <FeatureGrid
-        testId="staff-grid"
-        rowData={rows}
-        columnDefs={columnDefs}
-        defaultSortField="fullName"
-        onRowClick={(r) => setSelectedId(r.id)}
-      />
+
+      <div className="px-4 pt-3 pb-0 flex flex-wrap" data-testid="staff-grid-chip-row">
+        <StatusChipRow chips={chips} active={active} onToggle={toggleChip} />
+      </div>
+
+      <div className="flex-1 px-4 pt-3 pb-3 overflow-hidden flex flex-col">
+        <FeatureGrid
+          testId="staff-grid"
+          rowData={filtered}
+          columnDefs={columnDefs}
+          defaultSortField="fullName"
+          onRowClick={(r) => setSelectedId(r.id)}
+          quickFilterText={search}
+        />
+      </div>
+
       <DetailSheet
         open={!!sel}
         onClose={() => setSelectedId(null)}

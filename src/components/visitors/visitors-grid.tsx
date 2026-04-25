@@ -1,12 +1,15 @@
 "use client";
 
 import type { ColDef } from "ag-grid-community";
-import { useMemo } from "react";
+import { Flame } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
 import { FeatureGrid } from "@/components/shell/feature-grid";
+import { FeatureToolbar } from "@/components/shell/feature-toolbar";
 import { GenericDetail } from "@/components/shell/generic-detail";
 import { StatusBadge } from "@/components/shell/status-badge";
+import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
 import { Button } from "@/components/ui/button";
 import { SignInVisitorDialog } from "@/components/visitors/sign-in-dialog";
 import { useSession } from "@/lib/auth/current";
@@ -29,34 +32,85 @@ export function VisitorsGrid() {
   const session = useSession();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [selectedId, setSelectedId] = useIdParam();
+  const [search, setSearch] = useState("");
+  const [active, setActive] = useState<Set<string>>(new Set(["all"]));
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
     return dataset.visitors
       .filter((v) => v.tenantId === tenantId)
-      .map((v): Row => ({
-        id: v.id,
-        visitorName: v.visitorName,
-        visitorType: v.visitorType,
-        purpose: v.purpose,
-        vehicleReg: v.vehicleReg ?? "—",
-        arrivedAt: v.arrivedAt,
-        departedAt: v.departedAt,
-        onSite: v.departedAt ? "completed" : "active",
-      }));
+      .map(
+        (v): Row => ({
+          id: v.id,
+          visitorName: v.visitorName,
+          visitorType: v.visitorType,
+          purpose: v.purpose,
+          vehicleReg: v.vehicleReg ?? "—",
+          arrivedAt: v.arrivedAt,
+          departedAt: v.departedAt,
+          onSite: v.departedAt ? "completed" : "active",
+        }),
+      );
   }, [dataset, tenantId]);
+
+  const counts = useMemo(
+    () => ({
+      all: rows.length,
+      active: rows.filter((r) => r.onSite === "active").length,
+      contractor: rows.filter((r) => r.visitorType === "contractor").length,
+      vet: rows.filter((r) => r.visitorType === "vet").length,
+      farrier: rows.filter((r) => r.visitorType === "farrier").length,
+      supplier: rows.filter((r) => r.visitorType === "supplier").length,
+    }),
+    [rows],
+  );
+
+  const chips: StatusChip[] = [
+    { slug: "all", label: "All", count: counts.all },
+    { slug: "active", label: "On site", count: counts.active },
+    { slug: "vet", label: "Vet", count: counts.vet },
+    { slug: "farrier", label: "Farrier", count: counts.farrier },
+    { slug: "contractor", label: "Contractor", count: counts.contractor },
+    { slug: "supplier", label: "Supplier", count: counts.supplier },
+  ];
+
+  const filtered = useMemo(() => {
+    if (active.has("all")) return rows;
+    return rows.filter((r) => {
+      if (active.has("active") && r.onSite === "active") return true;
+      if (active.has(r.visitorType)) return true;
+      return false;
+    });
+  }, [rows, active]);
+
+  const toggleChip = (slug: string) => {
+    setActive((prev) => {
+      const next = new Set(prev);
+      if (slug === "all") return new Set(["all"]);
+      next.delete("all");
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      if (next.size === 0) next.add("all");
+      return next;
+    });
+  };
 
   const columnDefs: ColDef<Row>[] = useMemo(
     () => [
-      { field: "visitorName", headerName: "Visitor", width: 220, pinned: "left" },
-      { field: "visitorType", headerName: "Type", width: 130 },
+      { field: "visitorName", headerName: "Visitor", width: 220 },
+      {
+        field: "visitorType",
+        headerName: "Type",
+        width: 130,
+        valueFormatter: (p) => (p.value ? String(p.value).replace("_", " ") : ""),
+      },
       { field: "purpose", headerName: "Purpose", width: 240 },
       { field: "vehicleReg", headerName: "Vehicle", width: 130 },
       {
         field: "arrivedAt",
         headerName: "Arrived",
         width: 180,
-        cellRenderer: (p: { value?: string }) => formatDateTime(p.value),
+        valueFormatter: (p) => formatDateTime(p.value as string),
       },
       {
         field: "onSite",
@@ -71,19 +125,36 @@ export function VisitorsGrid() {
   const sel = dataset.visitors.find((v) => v.id === selectedId);
 
   return (
-    <div className="flex flex-col gap-3 p-4 pb-12 flex-1">
-      <div className="flex gap-2 justify-end">
-        <Button size="sm" variant="outline" data-testid="visitors-grid-fire">Fire roll-call</Button>
-        <SignInVisitorDialog />
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="px-4 pt-3 flex items-center gap-2">
+        <FeatureToolbar
+          search={search}
+          onSearchChange={setSearch}
+          placeholder="Search visitors, purpose, vehicle…"
+        >
+          <Button size="sm" variant="outline" data-testid="visitors-grid-fire">
+            <Flame size={14} /> Fire roll-call
+          </Button>
+          <SignInVisitorDialog />
+        </FeatureToolbar>
       </div>
-      <FeatureGrid
-        testId="visitors-grid"
-        rowData={rows}
-        columnDefs={columnDefs}
-        defaultSortField="arrivedAt"
-        defaultSortDirection="desc"
-        onRowClick={(r) => setSelectedId(r.id)}
-      />
+
+      <div className="px-4 pt-3 pb-0 flex flex-wrap" data-testid="visitors-grid-chip-row">
+        <StatusChipRow chips={chips} active={active} onToggle={toggleChip} />
+      </div>
+
+      <div className="flex-1 px-4 pt-3 pb-3 overflow-hidden flex flex-col">
+        <FeatureGrid
+          testId="visitors-grid"
+          rowData={filtered}
+          columnDefs={columnDefs}
+          quickFilterText={search}
+          defaultSortField="arrivedAt"
+          defaultSortDirection="desc"
+          onRowClick={(r) => setSelectedId(r.id)}
+        />
+      </div>
+
       <DetailSheet
         open={!!sel}
         onClose={() => setSelectedId(null)}
@@ -100,7 +171,10 @@ export function VisitorsGrid() {
                   { label: "Purpose", value: sel.purpose },
                   { label: "Vehicle reg", value: sel.vehicleReg ?? "—" },
                   { label: "Arrived", value: formatDateTime(sel.arrivedAt) },
-                  { label: "Departed", value: sel.departedAt ? formatDateTime(sel.departedAt) : "Still on site" },
+                  {
+                    label: "Departed",
+                    value: sel.departedAt ? formatDateTime(sel.departedAt) : "Still on site",
+                  },
                   { label: "Induction", value: sel.inductionStatus ?? "—" },
                 ],
               },

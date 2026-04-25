@@ -1,5 +1,11 @@
-import { IncidentsGrid } from "@/components/incidents/incidents-grid";
+import { IncidentsDashboard } from "@/components/incidents/incidents-dashboard";
+import { IncidentsTabs } from "@/components/incidents/incidents-tabs";
 
 export default function IncidentsPage() {
-  return <IncidentsGrid />;
+  return (
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <IncidentsTabs />
+      <IncidentsDashboard />
+    </div>
+  );
 }

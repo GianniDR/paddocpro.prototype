@@ -1,5 +1,11 @@
-import { FeedGrid } from "@/components/feed-supplies/feed-grid";
+import { FeedSuppliesDashboard } from "@/components/feed-supplies/feed-supplies-dashboard";
+import { FeedSuppliesTabs } from "@/components/feed-supplies/feed-supplies-tabs";
 
 export default function FeedSuppliesPage() {
-  return <FeedGrid />;
+  return (
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <FeedSuppliesTabs />
+      <FeedSuppliesDashboard />
+    </div>
+  );
 }

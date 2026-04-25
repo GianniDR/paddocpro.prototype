@@ -1,14 +1,16 @@
 "use client";
 
 import type { ColDef } from "ag-grid-community";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { SignaturePadDialog } from "@/components/documents/signature-pad";
 import { UploadDocumentDialog } from "@/components/documents/upload-dialog";
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
 import { FeatureGrid } from "@/components/shell/feature-grid";
+import { FeatureToolbar } from "@/components/shell/feature-toolbar";
 import { GenericDetail } from "@/components/shell/generic-detail";
 import { StatusBadge } from "@/components/shell/status-badge";
+import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
 import { useSession } from "@/lib/auth/current";
 import { formatDate } from "@/lib/format";
 import { now } from "@/lib/mock/clock";
@@ -40,6 +42,8 @@ export function DocumentsGrid() {
   const session = useSession();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [selectedId, setSelectedId] = useIdParam();
+  const [search, setSearch] = useState("");
+  const [active, setActive] = useState<Set<string>>(new Set(["all"]));
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -69,17 +73,63 @@ export function DocumentsGrid() {
       });
   }, [dataset, tenantId]);
 
+  const counts = useMemo(
+    () => ({
+      all: rows.length,
+      expired: rows.filter((r) => r.expiryStatus === "expired").length,
+      due_30d: rows.filter((r) => r.expiryStatus === "due_30d").length,
+      horse: rows.filter((r) => r.entityType === "horse").length,
+      client: rows.filter((r) => r.entityType === "client").length,
+      staff: rows.filter((r) => r.entityType === "staff").length,
+    }),
+    [rows],
+  );
+
+  const chips: StatusChip[] = [
+    { slug: "all", label: "All", count: counts.all },
+    { slug: "expired", label: "Expired", count: counts.expired },
+    { slug: "due_30d", label: "Due ≤30 d", count: counts.due_30d },
+    { slug: "horse", label: "Horse", count: counts.horse },
+    { slug: "client", label: "Client", count: counts.client },
+    { slug: "staff", label: "Staff", count: counts.staff },
+  ];
+
+  const filtered = useMemo(() => {
+    if (active.has("all")) return rows;
+    return rows.filter((r) => {
+      if (active.has("expired") && r.expiryStatus === "expired") return true;
+      if (active.has("due_30d") && r.expiryStatus === "due_30d") return true;
+      if (active.has("horse") && r.entityType === "horse") return true;
+      if (active.has("client") && r.entityType === "client") return true;
+      if (active.has("staff") && r.entityType === "staff") return true;
+      return false;
+    });
+  }, [rows, active]);
+
+  const toggleChip = (slug: string) => {
+    setActive((prev) => {
+      const next = new Set(prev);
+      if (slug === "all") return new Set(["all"]);
+      next.delete("all");
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      if (next.size === 0) next.add("all");
+      return next;
+    });
+  };
+
   const columnDefs: ColDef<Row>[] = useMemo(
     () => [
-      { field: "title", headerName: "Title", width: 280, pinned: "left" },
+      { field: "title", headerName: "Title", width: 280 },
       { field: "category", headerName: "Category", width: 160 },
+      { field: "entityType", headerName: "Linked type", width: 130 },
       { field: "entityName", headerName: "Linked to", width: 180 },
       { field: "fileSize", headerName: "Size", width: 100 },
       {
         field: "expiryDate",
         headerName: "Expiry",
         width: 130,
-        cellRenderer: (p: { value?: string | null }) => formatDate(p.value),
+        valueFormatter: (p) => formatDate(p.value as string | null),
       },
       {
         field: "expiryStatus",
@@ -94,19 +144,34 @@ export function DocumentsGrid() {
   const sel = dataset.documents.find((d) => d.id === selectedId);
 
   return (
-    <div className="flex flex-col gap-3 p-4 pb-12 flex-1">
-      <div className="flex justify-end gap-2">
-        <SignaturePadDialog />
-        <UploadDocumentDialog />
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="px-4 pt-3 flex items-center gap-2">
+        <FeatureToolbar
+          search={search}
+          onSearchChange={setSearch}
+          placeholder="Search documents, categories, linked entities…"
+        >
+          <SignaturePadDialog />
+          <UploadDocumentDialog />
+        </FeatureToolbar>
       </div>
-      <FeatureGrid
-        testId="documents-grid"
-        rowData={rows}
-        columnDefs={columnDefs}
-        defaultSortField="uploadedAt"
-        defaultSortDirection="desc"
-        onRowClick={(r) => setSelectedId(r.id)}
-      />
+
+      <div className="px-4 pt-3 pb-0 flex flex-wrap" data-testid="documents-grid-chip-row">
+        <StatusChipRow chips={chips} active={active} onToggle={toggleChip} />
+      </div>
+
+      <div className="flex-1 px-4 pt-3 pb-3 overflow-hidden flex flex-col">
+        <FeatureGrid
+          testId="documents-grid"
+          rowData={filtered}
+          columnDefs={columnDefs}
+          defaultSortField="uploadedAt"
+          defaultSortDirection="desc"
+          onRowClick={(r) => setSelectedId(r.id)}
+          quickFilterText={search}
+        />
+      </div>
+
       <DetailSheet
         open={!!sel}
         onClose={() => setSelectedId(null)}

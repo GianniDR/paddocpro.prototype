@@ -1,5 +1,11 @@
-import { FinanceGrid } from "@/components/finance/finance-grid";
+import { FinanceDashboard } from "@/components/finance/finance-dashboard";
+import { FinanceTabs } from "@/components/finance/finance-tabs";
 
 export default function FinancePage() {
-  return <FinanceGrid />;
+  return (
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <FinanceTabs />
+      <FinanceDashboard />
+    </div>
+  );
 }

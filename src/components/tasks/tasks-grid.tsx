@@ -7,8 +7,10 @@ import { toast } from "sonner";
 
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
 import { FeatureGrid } from "@/components/shell/feature-grid";
+import { FeatureToolbar } from "@/components/shell/feature-toolbar";
 import { GenericDetail } from "@/components/shell/generic-detail";
 import { StatusBadge } from "@/components/shell/status-badge";
+import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth/current";
 import { formatDateTime } from "@/lib/format";
@@ -33,6 +35,8 @@ export function TasksGrid() {
   const [selectedId, setSelectedId] = useIdParam();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const [search, setSearch] = useState("");
+  const [active, setActive] = useState<Set<string>>(new Set(["all"]));
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -52,6 +56,77 @@ export function TasksGrid() {
         };
       });
   }, [dataset, tenantId]);
+
+  const counts = useMemo(() => {
+    const tenantNow = now().getTime();
+    const todayStart = (() => {
+      const d = now();
+      d.setUTCHours(0, 0, 0, 0);
+      return d.getTime();
+    })();
+    const todayEnd = todayStart + 86_400_000;
+    return {
+      all: rows.length,
+      pending: rows.filter((r) => r.status === "pending").length,
+      in_progress: rows.filter((r) => r.status === "in_progress").length,
+      overdue: rows.filter((r) => r.status !== "completed" && Date.parse(r.dueAt) < tenantNow)
+        .length,
+      due_today: rows.filter(
+        (r) =>
+          r.status !== "completed" &&
+          Date.parse(r.dueAt) >= todayStart &&
+          Date.parse(r.dueAt) < todayEnd,
+      ).length,
+      completed: rows.filter((r) => r.status === "completed").length,
+    };
+  }, [rows]);
+
+  const chips: StatusChip[] = [
+    { slug: "all", label: "All", count: counts.all },
+    { slug: "due_today", label: "Due today", count: counts.due_today },
+    { slug: "overdue", label: "Overdue", count: counts.overdue },
+    { slug: "pending", label: "Pending", count: counts.pending },
+    { slug: "in_progress", label: "In progress", count: counts.in_progress },
+    { slug: "completed", label: "Completed", count: counts.completed },
+  ];
+
+  const filtered = useMemo(() => {
+    if (active.has("all")) return rows;
+    const tenantNow = now().getTime();
+    const todayStart = (() => {
+      const d = now();
+      d.setUTCHours(0, 0, 0, 0);
+      return d.getTime();
+    })();
+    const todayEnd = todayStart + 86_400_000;
+    return rows.filter((r) => {
+      if (active.has("pending") && r.status === "pending") return true;
+      if (active.has("in_progress") && r.status === "in_progress") return true;
+      if (active.has("completed") && r.status === "completed") return true;
+      if (active.has("overdue") && r.status !== "completed" && Date.parse(r.dueAt) < tenantNow)
+        return true;
+      if (
+        active.has("due_today") &&
+        r.status !== "completed" &&
+        Date.parse(r.dueAt) >= todayStart &&
+        Date.parse(r.dueAt) < todayEnd
+      )
+        return true;
+      return false;
+    });
+  }, [rows, active]);
+
+  const toggleChip = (slug: string) => {
+    setActive((prev) => {
+      const next = new Set(prev);
+      if (slug === "all") return new Set(["all"]);
+      next.delete("all");
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      if (next.size === 0) next.add("all");
+      return next;
+    });
+  };
 
   async function completeOne(id: string) {
     setBusy(true);
@@ -93,7 +168,6 @@ export function TasksGrid() {
         field: "priority",
         headerName: "Priority",
         width: 110,
-        pinned: "left",
         cellRenderer: (p: { value?: string }) => <StatusBadge status={p.value ?? "medium"} />,
       },
       { field: "title", headerName: "Task", width: 260 },
@@ -101,13 +175,13 @@ export function TasksGrid() {
         field: "type",
         headerName: "Type",
         width: 130,
-        cellRenderer: (p: { value?: string }) => (p.value ? p.value.replace("_", " ") : ""),
+        valueFormatter: (p) => (p.value ? String(p.value).replace(/_/g, " ") : ""),
       },
       {
         field: "dueAt",
         headerName: "Due",
         width: 200,
-        cellRenderer: (p: { value?: string }) => formatDateTime(p.value),
+        valueFormatter: (p) => formatDateTime(p.value as string),
       },
       { field: "assigneeName", headerName: "Assignee", width: 180 },
       {
@@ -119,7 +193,7 @@ export function TasksGrid() {
       {
         colId: "__row-action",
         headerName: "",
-        width: 100,
+        width: 110,
         sortable: false,
         filter: false,
         cellRenderer: (p: { data?: Row }) => {
@@ -151,7 +225,19 @@ export function TasksGrid() {
   const horse = sel?.horseId ? dataset.horses.find((h) => h.id === sel.horseId) : null;
 
   return (
-    <div className="flex flex-col gap-3 p-4 pb-12 flex-1">
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="px-4 pt-3 flex items-center gap-2">
+        <FeatureToolbar
+          search={search}
+          onSearchChange={setSearch}
+          placeholder="Search tasks, assignees, notes…"
+        />
+      </div>
+
+      <div className="px-4 pt-3 pb-0 flex flex-wrap" data-testid="tasks-grid-chip-row">
+        <StatusChipRow chips={chips} active={active} onToggle={toggleChip} />
+      </div>
+
       {selectedIds.length > 0 && (
         <div
           className="sticky bottom-4 z-30 mx-auto inline-flex items-center gap-3 rounded-md border bg-card px-3 py-2 shadow-md self-center"
@@ -176,14 +262,19 @@ export function TasksGrid() {
           </Button>
         </div>
       )}
-      <FeatureGrid
-        testId="tasks-grid"
-        rowData={rows}
-        columnDefs={columnDefs}
-        defaultSortField="dueAt"
-        onRowClick={(row) => setSelectedId(row.id)}
-        onSelectionChanged={(rows) => setSelectedIds(rows.map((r) => r.id))}
-      />
+
+      <div className="flex-1 px-4 pt-3 pb-3 overflow-hidden flex flex-col">
+        <FeatureGrid
+          testId="tasks-grid"
+          rowData={filtered}
+          columnDefs={columnDefs}
+          quickFilterText={search}
+          defaultSortField="dueAt"
+          onRowClick={(row) => setSelectedId(row.id)}
+          onSelectionChanged={(rows) => setSelectedIds(rows.map((r) => r.id))}
+        />
+      </div>
+
       <DetailSheet
         open={!!sel}
         onClose={() => setSelectedId(null)}
@@ -215,7 +306,13 @@ export function TasksGrid() {
             ]}
             drillLinks={
               horse
-                ? [{ label: `Open ${horse.stableName}`, href: `/horses/${horse.id}`, testId: `drill-horse-${horse.id}` }]
+                ? [
+                    {
+                      label: `Open ${horse.stableName}`,
+                      href: `/horses/${horse.id}`,
+                      testId: `drill-horse-${horse.id}`,
+                    },
+                  ]
                 : []
             }
           />

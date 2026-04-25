@@ -1,5 +1,11 @@
-import { HealthShell } from "@/components/health/health-shell";
+import { HealthDashboard } from "@/components/health/health-dashboard";
+import { HealthTabs } from "@/components/health/health-tabs";
 
 export default function HealthPage() {
-  return <HealthShell />;
+  return (
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <HealthTabs />
+      <HealthDashboard />
+    </div>
+  );
 }

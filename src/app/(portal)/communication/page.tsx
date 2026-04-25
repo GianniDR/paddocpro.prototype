@@ -1,5 +1,11 @@
-import { CommunicationShell } from "@/components/communication/communication-shell";
+import { CommunicationDashboard } from "@/components/communication/communication-dashboard";
+import { CommunicationTabs } from "@/components/communication/communication-tabs";
 
 export default function CommunicationPage() {
-  return <CommunicationShell />;
+  return (
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <CommunicationTabs />
+      <CommunicationDashboard />
+    </div>
+  );
 }
