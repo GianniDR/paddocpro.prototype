@@ -17,6 +17,7 @@ import {
   YAxis,
 } from "recharts";
 
+import { AddHorseModal } from "@/components/horses/add-horse-modal";
 import { KpiCard } from "@/components/shell/kpi-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -69,12 +70,13 @@ export function DashboardShell() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
-            render={<Link href="/horses/new" data-testid="dashboard-quick-action-add-horse" />}
-            size="sm"
-          >
-            <Plus className="h-3.5 w-3.5" /> Add horse
-          </Button>
+          <AddHorseModal
+            trigger={
+              <Button size="sm" data-testid="dashboard-quick-action-add-horse">
+                <Plus className="h-3.5 w-3.5" /> Add horse
+              </Button>
+            }
+          />
           <Button
             render={<Link href="/bookings" data-testid="dashboard-quick-action-new-booking" />}
             size="sm"
