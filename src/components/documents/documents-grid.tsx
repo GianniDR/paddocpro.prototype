@@ -3,11 +3,12 @@
 import type { ColDef } from "ag-grid-community";
 import { useMemo } from "react";
 
+import { SignaturePadDialog } from "@/components/documents/signature-pad";
+import { UploadDocumentDialog } from "@/components/documents/upload-dialog";
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { GenericDetail } from "@/components/shell/generic-detail";
 import { StatusBadge } from "@/components/shell/status-badge";
-import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth/current";
 import { formatDate } from "@/lib/format";
 import { now } from "@/lib/mock/clock";
@@ -94,8 +95,9 @@ export function DocumentsGrid() {
 
   return (
     <div className="flex flex-col gap-3 p-4 pb-12 flex-1">
-      <div className="flex justify-end">
-        <Button size="sm" data-testid="documents-grid-cta">+ Upload document</Button>
+      <div className="flex justify-end gap-2">
+        <SignaturePadDialog />
+        <UploadDocumentDialog />
       </div>
       <FeatureGrid
         testId="documents-grid"

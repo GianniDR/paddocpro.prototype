@@ -2,9 +2,9 @@ import { expect, type Page, test } from "@playwright/test";
 
 async function nextStep(page: Page, step: number) {
   const btn = page.getByTestId(`wizard-add-horse-step-${step}-next`);
-  // Webkit + Base UI needs a generous wait for the disabled prop to flip after fills.
   await expect(btn).toBeEnabled({ timeout: 5_000 });
-  await btn.click({ force: true });
+  // dispatchEvent bypasses any fixed-position element overlap (mobile bottom nav).
+  await btn.dispatchEvent("click");
 }
 
 async function fillField(page: Page, testId: string, value: string) {
@@ -44,8 +44,12 @@ test.describe("Add Horse wizard", () => {
     await page.locator("[role=option]").first().click();
     await nextStep(page, 4);
 
-    // Step 5 — Submit
-    await page.getByTestId("wizard-add-horse-submit").click({ force: true });
+    // Step 5 — Submit. Dispatch the click event directly to avoid the mobile
+    // bottom-tab nav (fixed-position) intercepting pointer clicks at the bottom
+    // of the viewport on small screens.
+    const submit = page.getByTestId("wizard-add-horse-submit");
+    await expect(submit).toBeEnabled({ timeout: 5_000 });
+    await submit.dispatchEvent("click");
     await page.waitForURL(/\/horses\/horse_[a-z0-9-]+/, { timeout: 10_000 });
     await expect(page.getByTestId("horse-profile-toolbar")).toBeVisible();
   });

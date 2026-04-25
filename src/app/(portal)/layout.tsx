@@ -1,5 +1,6 @@
 import { AgGridLicense } from "@/components/ag-grid-license";
 import { AppSidebar } from "@/components/layout/app-sidebar";
+import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { SessionBootstrap } from "@/components/layout/session-bootstrap";
 import { PaddyPanel } from "@/components/paddy/paddy-panel";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -14,11 +15,12 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
       <AgGridLicense />
       <SidebarProvider defaultOpen>
         <AppSidebar />
-        <SidebarInset className="flex flex-col min-h-svh">
+        <SidebarInset className="flex flex-col min-h-svh pb-16 md:pb-0">
           <main id="main" className="flex-1 flex flex-col">
             {children}
           </main>
         </SidebarInset>
+        <MobileBottomNav />
         <PaddyPanel />
       </SidebarProvider>
     </SessionBootstrap>
