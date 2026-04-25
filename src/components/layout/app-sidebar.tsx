@@ -75,7 +75,7 @@ export function AppSidebar() {
           <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Yard</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {PRIMARY_NAV.map((item) => {
+              {PRIMARY_NAV.flatMap((entry) => ("children" in entry ? entry.children : [entry])).map((item) => {
                 const Icon = item.icon;
                 const badge = badges[item.slug];
                 return (
@@ -113,8 +113,8 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              render={<Link href={SETTINGS_NAV.route} data-testid={`nav-${SETTINGS_NAV.slug}`} />}
-              isActive={isActive(SETTINGS_NAV.route)}
+              render={<Link href="/settings" data-testid="nav-settings" />}
+              isActive={isActive("/settings")}
               tooltip={SETTINGS_NAV.label}
             >
               <SETTINGS_NAV.icon className="h-4 w-4" aria-hidden="true" />
