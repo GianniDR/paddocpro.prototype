@@ -23,6 +23,6 @@ test.describe("Dashboard", () => {
   test("quick actions navigate correctly @e2e:dashboard", async ({ page }) => {
     await page.goto("/dashboard");
     await page.getByTestId("dashboard-quick-action-add-horse").click();
-    await page.waitForURL(/\/horses$/);
+    await page.waitForURL(/\/horses\/new$/);
   });
 });

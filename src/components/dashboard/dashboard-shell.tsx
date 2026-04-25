@@ -70,7 +70,7 @@ export function DashboardShell() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button
-            render={<Link href="/horses" data-testid="dashboard-quick-action-add-horse" />}
+            render={<Link href="/horses/new" data-testid="dashboard-quick-action-add-horse" />}
             size="sm"
           >
             <Plus className="h-3.5 w-3.5" /> Add horse

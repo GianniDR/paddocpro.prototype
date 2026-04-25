@@ -203,7 +203,13 @@ export function HorsesGrid() {
             data-testid="horses-grid-search"
           />
         </div>
-        <Button size="sm" data-testid="horses-grid-cta">+ Add horse</Button>
+        <Button
+          size="sm"
+          data-testid="horses-grid-cta"
+          onClick={() => router.push("/horses/new")}
+        >
+          + Add horse
+        </Button>
       </div>
 
       <div className="flex flex-wrap gap-2" data-testid="horses-grid-chip-row">

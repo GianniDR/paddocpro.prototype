@@ -1,14 +1,17 @@
-import { BookingsShell } from "@/components/bookings/bookings-shell";
+import { AddHorseWizard } from "@/components/horses/add-horse-wizard";
 import { PaddyTrigger } from "@/components/layout/paddy-trigger";
 import { TenantSwitcher } from "@/components/layout/tenant-switcher";
 import { UserMenu } from "@/components/layout/user-menu";
 import { PageHeader } from "@/components/shell/page-header";
 
-export default function BookingsPage() {
+export default function NewHorsePage() {
   return (
     <>
       <PageHeader
-        breadcrumb={[{ label: "Bookings" }]}
+        breadcrumb={[
+          { label: "Horses", href: "/horses" },
+          { label: "Add horse" },
+        ]}
         rightSlot={
           <>
             <TenantSwitcher />
@@ -17,7 +20,7 @@ export default function BookingsPage() {
           </>
         }
       />
-      <BookingsShell />
+      <AddHorseWizard />
     </>
   );
 }

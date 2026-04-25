@@ -2,7 +2,7 @@ import { PaddyTrigger } from "@/components/layout/paddy-trigger";
 import { TenantSwitcher } from "@/components/layout/tenant-switcher";
 import { UserMenu } from "@/components/layout/user-menu";
 import { PageHeader } from "@/components/shell/page-header";
-import { StablesGrid } from "@/components/stables/stables-grid";
+import { StablesShell } from "@/components/stables/stables-shell";
 
 export default function StablesPage() {
   return (
@@ -17,7 +17,7 @@ export default function StablesPage() {
           </>
         }
       />
-      <StablesGrid />
+      <StablesShell />
     </>
   );
 }

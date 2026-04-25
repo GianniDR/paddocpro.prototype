@@ -3,8 +3,7 @@
 import type { ColDef } from "ag-grid-community";
 import { useMemo } from "react";
 
-import { BookingDetail } from "@/components/bookings/booking-detail";
-import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
+import { useIdParam } from "@/components/shell/detail-sheet";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,7 @@ export function BookingsGrid() {
   const dataset = useDataset();
   const session = useSession();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
-  const [selectedId, setSelectedId] = useIdParam();
+  const [, setSelectedId] = useIdParam();
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -74,10 +73,8 @@ export function BookingsGrid() {
     [],
   );
 
-  const selected = rows.find((r) => r.id === selectedId);
-
   return (
-    <div className="flex flex-col gap-3 p-4 pb-12 flex-1">
+    <div className="flex flex-col gap-3 flex-1">
       <div className="flex justify-end">
         <Button size="sm" data-testid="bookings-grid-cta">+ New booking</Button>
       </div>
@@ -88,15 +85,6 @@ export function BookingsGrid() {
         defaultSortField="whenLabel"
         onRowClick={(row) => setSelectedId(row.id)}
       />
-      <DetailSheet
-        open={!!selected}
-        onClose={() => setSelectedId(null)}
-        title={selected ? `${selected.type.replace("_", " ")} — ${selected.whenLabel}` : ""}
-        subtitle={selected?.resource}
-        testId="booking-sheet"
-      >
-        {selected && <BookingDetail bookingId={selected.id} />}
-      </DetailSheet>
     </div>
   );
 }

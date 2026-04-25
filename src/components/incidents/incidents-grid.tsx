@@ -3,6 +3,7 @@
 import type { ColDef } from "ag-grid-community";
 import { useMemo } from "react";
 
+import { IncidentWorkflowStepper } from "@/components/incidents/incident-workflow";
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { GenericDetail } from "@/components/shell/generic-detail";
@@ -97,6 +98,11 @@ export function IncidentsGrid() {
         subtitle={sel ? formatDateTime(sel.occurredAt) : ""}
         testId="incident-sheet"
       >
+        {sel && (
+          <div className="space-y-4 max-w-3xl">
+            <IncidentWorkflowStepper incidentId={sel.id} />
+          </div>
+        )}
         {sel && (
           <GenericDetail
             sections={[

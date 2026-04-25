@@ -3,11 +3,11 @@
 import type { ColDef } from "ag-grid-community";
 import { useMemo } from "react";
 
+import { RunMonthlyInvoicingDialog } from "@/components/finance/run-monthly-invoicing-dialog";
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { GenericDetail } from "@/components/shell/generic-detail";
 import { StatusBadge } from "@/components/shell/status-badge";
-import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth/current";
 import { formatDate, formatGbp } from "@/lib/format";
 import { useDataset } from "@/lib/mock/store";
@@ -97,7 +97,7 @@ export function FinanceGrid() {
   return (
     <div className="flex flex-col gap-3 p-4 pb-12 flex-1">
       <div className="flex justify-end">
-        <Button size="sm" data-testid="finance-grid-cta">Run monthly invoicing</Button>
+        <RunMonthlyInvoicingDialog />
       </div>
       <FeatureGrid
         testId="finance-grid"

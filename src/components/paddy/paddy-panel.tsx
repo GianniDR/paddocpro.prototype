@@ -29,7 +29,9 @@ interface PaddyMsg {
 const SUGGESTIONS = [
   "Which horses are overdue for vaccinations?",
   "What's happening on the yard today?",
-  "Show me outstanding invoices",
+  "Are we ready to run monthly invoicing?",
+  "Give me an update on open incidents",
+  "Draft a vaccination reminder email",
 ];
 
 export function PaddyPanel() {
@@ -260,12 +262,105 @@ function respond(
     return { body, cites: [{ label: "Open today's tasks", href: "/tasks" }, { label: "Open bookings", href: "/bookings" }] };
   }
 
+  if (
+    (lower.includes("invoice") || lower.includes("invoicing")) &&
+    (lower.includes("ready") || lower.includes("run") || lower.includes("monthly") || lower.includes("pre-flight"))
+  ) {
+    const horses = dataset.horses.filter((h) => h.tenantId === tenantId && !h.archivedAt);
+    const totalPence = horses.reduce((s, h) => {
+      const pkg = dataset.liveryPackages.find((p) => p.id === h.liveryPackageId);
+      return s + (pkg?.basePriceMonthlyPence ?? 0);
+    }, 0);
+    const blockers: string[] = [];
+    const noXeroContact = dataset.clients
+      .filter((c) => c.tenantId === tenantId && !c.xeroContactId)
+      .slice(0, 3);
+    if (noXeroContact.length > 0)
+      blockers.push(`${noXeroContact.length} clients without a Xero contact`);
+    const calls = Math.ceil(horses.length / 50);
+    const body =
+      `Pre-flight check for monthly invoicing at ${dataset.tenants.find((t) => t.id === tenantId)?.name}:\n\n` +
+      `• ${horses.length} active livery contracts → ${formatGbp(totalPence)} forecast (subtotal).\n` +
+      `• ${calls} Xero API call${calls === 1 ? "" : "s"} (50 invoices per call).\n` +
+      `• Blockers: ${blockers.length === 0 ? "none — ready to run" : blockers.join(", ")}.\n\n` +
+      `Open Finance to launch the run.`;
+    return {
+      body,
+      cites: [{ label: "Run monthly invoicing", href: "/finance" }],
+    };
+  }
+
   if (lower.includes("invoice") || lower.includes("outstanding") || lower.includes("payment")) {
     const unpaid = dataset.invoices.filter((i) => i.tenantId === tenantId && i.status === "authorised");
     const total = unpaid.reduce((s, i) => s + (i.totalPence - i.paidAmountPence), 0);
     return {
       body: `${unpaid.length} unpaid invoice${unpaid.length === 1 ? "" : "s"}, totalling ${formatGbp(total)}. Need a hand running monthly invoicing?`,
       cites: [{ label: "Open finance", href: "/finance" }],
+    };
+  }
+
+  if (lower.includes("incident") || lower.includes("welfare")) {
+    const open = dataset.incidents.filter((i) => i.tenantId === tenantId && i.workflowState !== "closed");
+    if (open.length === 0)
+      return {
+        body: `No open incidents at ${dataset.tenants.find((t) => t.id === tenantId)?.name}. All clear.`,
+        cites: [],
+      };
+    const bySeverity = {
+      critical: open.filter((i) => i.severity === "critical").length,
+      serious: open.filter((i) => i.severity === "serious").length,
+      moderate: open.filter((i) => i.severity === "moderate").length,
+      minor: open.filter((i) => i.severity === "minor").length,
+    };
+    const body =
+      `${open.length} open incident${open.length === 1 ? "" : "s"}:\n\n` +
+      `• ${bySeverity.critical} critical · ${bySeverity.serious} serious · ${bySeverity.moderate} moderate · ${bySeverity.minor} minor.\n\n` +
+      `Top of the queue:\n` +
+      open
+        .slice(0, 3)
+        .map((i) => `• ${i.severity.toUpperCase()} — ${i.summary} (${i.workflowState.replace("_", " ")})`)
+        .join("\n");
+    return {
+      body,
+      cites: open.slice(0, 3).map((i) => ({ label: i.summary.slice(0, 40), href: `/incidents?id=${i.id}` })),
+    };
+  }
+
+  if (lower.includes("draft") && (lower.includes("email") || lower.includes("reminder") || lower.includes("message"))) {
+    // Try to find a horse mentioned, otherwise use first overdue horse
+    const named = dataset.horses
+      .filter((h) => h.tenantId === tenantId)
+      .find((h) => lower.includes(h.stableName.toLowerCase()));
+    const overdueHorses = dataset.healthEvents
+      .filter((e) => e.tenantId === tenantId && e.kind === "vaccination" && e.status === "overdue")
+      .map((e) => dataset.horses.find((h) => h.id === e.horseId))
+      .filter((h): h is Horse => !!h);
+    const target = named ?? overdueHorses[0];
+    if (!target) {
+      return {
+        body: `Pick a horse for the email — try "Draft an email to the owner of Whisper".`,
+        cites: [],
+      };
+    }
+    const owner = dataset.clients.find((c) => c.id === target.primaryOwnerId);
+    const ownerUser = dataset.users.find((u) => u.id === owner?.userAccountId);
+    const overdueEvent = overdueHorses.includes(target)
+      ? dataset.healthEvents.find((e) => e.horseId === target.id && e.status === "overdue")
+      : null;
+    const body =
+      `Drafted to ${ownerUser?.firstName ?? "owner"} ${ownerUser?.lastName ?? ""}:\n\n` +
+      `**Subject:** ${target.stableName} — ${overdueEvent ? "vaccination reminder" : "yard update"}\n\n` +
+      `Hi ${ownerUser?.firstName ?? "there"},\n\n` +
+      (overdueEvent
+        ? `Just a quick note that ${target.stableName}'s ${overdueEvent.productOrTreatment ?? "vaccination"} is now overdue. We'd recommend booking a vet visit at the earliest opportunity.\n\nLet us know what works and we'll arrange it.`
+        : `${target.stableName} is doing well. Just touching base on the next vet visit and any extras you'd like to add.`) +
+      `\n\nKind regards,\n${dataset.tenants.find((t) => t.id === tenantId)?.name} team`;
+    return {
+      body,
+      cites: [
+        { label: target.stableName, href: `/horses/${target.id}` },
+        ...(owner ? [{ label: `${ownerUser?.firstName} ${ownerUser?.lastName}`, href: `/clients?id=${owner.id}` }] : []),
+      ],
     };
   }
 

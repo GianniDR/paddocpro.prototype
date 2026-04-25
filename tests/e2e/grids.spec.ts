@@ -1,17 +1,35 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
-const GRIDS = [
+interface Cfg {
+  route: string;
+  testId: string;
+  cta?: string;
+  beforeGrid?: (page: Page) => Promise<void>;
+}
+
+const GRIDS: Cfg[] = [
   { route: "/clients", testId: "clients-grid", cta: "clients-grid-cta" },
-  { route: "/stables", testId: "stables-grid", cta: "stables-grid-cta" },
-  { route: "/bookings", testId: "bookings-grid", cta: "bookings-grid-cta" },
-  { route: "/tasks", testId: "tasks-grid", cta: null },
-  { route: "/health", testId: "health-grid", cta: null },
-  { route: "/finance", testId: "finance-grid", cta: "finance-grid-cta" },
+  {
+    route: "/stables",
+    testId: "stables-grid",
+    cta: "stables-grid-cta",
+    beforeGrid: async (page) => page.getByTestId("stables-view-grid").click(),
+  },
+  {
+    route: "/bookings",
+    testId: "bookings-grid",
+    cta: "bookings-grid-cta",
+    beforeGrid: async (page) => page.getByTestId("bookings-view-list").click(),
+  },
+  { route: "/tasks", testId: "tasks-grid" },
+  { route: "/health", testId: "health-grid" },
+  { route: "/finance", testId: "finance-grid", cta: "finance-grid-run-monthly" },
 ];
 
 for (const g of GRIDS) {
   test(`${g.route} grid renders with rows @e2e:grids`, async ({ page }) => {
     await page.goto(g.route);
+    if (g.beforeGrid) await g.beforeGrid(page);
     await expect(page.getByTestId(g.testId)).toBeVisible();
     if (g.cta) await expect(page.getByTestId(g.cta)).toBeVisible();
     await page.waitForSelector(".ag-row", { timeout: 10_000 });
