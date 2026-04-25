@@ -11,13 +11,14 @@ import {
   ModuleRegistry,
   type SelectionChangedEvent,
 } from "ag-grid-community";
+import { AllEnterpriseModule } from "ag-grid-enterprise";
 import { AgGridReact } from "ag-grid-react";
 import { useCallback, useMemo, useRef } from "react";
 
 import { paddocproTheme } from "@/lib/ag-grid-theme";
 import { cn } from "@/lib/utils";
 
-ModuleRegistry.registerModules([AllCommunityModule]);
+ModuleRegistry.registerModules([AllCommunityModule, AllEnterpriseModule]);
 
 interface FeatureGridProps<T extends { id: string }> {
   testId: string;
@@ -26,12 +27,11 @@ interface FeatureGridProps<T extends { id: string }> {
   onRowClick?: (row: T) => void;
   onSelectionChanged?: (rows: T[]) => void;
   quickFilterText?: string;
-  defaultSortField?: keyof T;
+  defaultSortField?: keyof T | string;
   defaultSortDirection?: "asc" | "desc";
   emptyState?: React.ReactNode;
   className?: string;
   rowHeight?: number;
-  groupBy?: string;
 }
 
 export function FeatureGrid<T extends { id: string }>({
@@ -46,7 +46,6 @@ export function FeatureGrid<T extends { id: string }>({
   emptyState,
   className,
   rowHeight = 44,
-  groupBy,
 }: FeatureGridProps<T>) {
   const apiRef = useRef<GridApi<T> | null>(null);
 
@@ -65,7 +64,6 @@ export function FeatureGrid<T extends { id: string }>({
 
   const handleCellClicked = useCallback(
     (e: CellClickedEvent<T>) => {
-      // Ignore clicks on the checkbox-only column.
       if (e.colDef.colId === "__select") return;
       if (e.data && onRowClick) onRowClick(e.data);
     },
@@ -79,54 +77,66 @@ export function FeatureGrid<T extends { id: string }>({
     [onSelectionChanged],
   );
 
-  const fullColDefs = useMemo<ColDef<T>[]>(() => {
-    return [
+  // Inject a non-pinned checkbox selection column FIRST (riskhub spec: no pinned columns).
+  const fullColDefs = useMemo<ColDef<T>[]>(
+    () => [
       {
         colId: "__select",
         headerName: "",
         width: 44,
-        pinned: "left",
         checkboxSelection: true,
         headerCheckboxSelection: true,
         sortable: false,
         filter: false,
         resizable: false,
+        suppressMovable: true,
+        enableRowGroup: false,
       },
-      ...columnDefs.map((c) => ({ ...c, sortable: c.sortable ?? true, filter: c.filter ?? "agTextColumnFilter" })),
-    ];
-  }, [columnDefs]);
+      ...columnDefs.map((c) => ({
+        sortable: true,
+        filter: "agTextColumnFilter" as const,
+        enableRowGroup: true,
+        ...c,
+      })),
+    ],
+    [columnDefs],
+  );
 
   const isEmpty = rowData.length === 0;
 
   return (
-    <div className={cn("flex-1 min-h-[400px] flex flex-col", className)} data-testid={testId}>
+    <div className={cn("flex flex-1 min-h-0 flex-col", className)} data-testid={testId}>
       {isEmpty && emptyState ? (
         <div className="flex-1 flex items-center justify-center" data-testid={`${testId}-empty`}>
           {emptyState}
         </div>
       ) : (
-        <div className="flex-1 min-h-[400px]">
-          <AgGridReact<T>
-            theme={paddocproTheme}
-            rowData={rowData}
-            columnDefs={fullColDefs}
-            quickFilterText={quickFilterText}
-            onGridReady={onGridReady}
-            onCellClicked={handleCellClicked}
-            onSelectionChanged={handleSelectionChanged}
-            rowSelection={{ mode: "multiRow", checkboxes: true, enableClickSelection: false }}
-            suppressMovableColumns={false}
-            suppressCellFocus
-            rowHeight={rowHeight}
-            headerHeight={40}
-            getRowId={(p) => p.data.id}
-            domLayout="normal"
-            rowGroupPanelShow={groupBy ? "always" : "never"}
-            animateRows
-            // Add per-row testid via DOM attribute through a custom row class
-            getRowClass={() => "feature-grid-row cursor-pointer"}
-          />
-        </div>
+        <AgGridReact<T>
+          theme={paddocproTheme}
+          rowData={rowData}
+          columnDefs={fullColDefs}
+          quickFilterText={quickFilterText}
+          onGridReady={onGridReady}
+          onCellClicked={handleCellClicked}
+          onSelectionChanged={handleSelectionChanged}
+          rowSelection={{ mode: "multiRow", checkboxes: true, enableClickSelection: false }}
+          rowGroupPanelShow="always"
+          sideBar={{
+            toolPanels: ["columns", "filters"],
+            defaultToolPanel: "",
+          }}
+          autoGroupColumnDef={{ headerName: "Group", minWidth: 200 }}
+          pagination
+          paginationPageSize={100}
+          paginationPageSizeSelector={[25, 50, 100, 200]}
+          rowHeight={rowHeight}
+          headerHeight={40}
+          getRowId={(p) => p.data.id}
+          domLayout="normal"
+          animateRows
+          suppressCellFocus
+          getRowClass={() => "cursor-pointer"}
+        />
       )}
     </div>
   );
