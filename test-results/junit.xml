@@ -1,0 +1,26 @@
+<testsuites id="" name="" tests="8" failures="0" skipped="0" errors="0" time="4.868286">
+<testsuite name="smoke.spec.ts" timestamp="2026-04-25T16:39:54.509Z" hostname="chromium" tests="2" failures="0" skipped="0" time="3.689" errors="0">
+<testcase name="home page boots without console errors @smoke" classname="smoke.spec.ts" time="2.199">
+</testcase>
+<testcase name="brand mark renders with Cormorant italic + horse icon @smoke" classname="smoke.spec.ts" time="1.49">
+</testcase>
+</testsuite>
+<testsuite name="smoke.spec.ts" timestamp="2026-04-25T16:39:54.509Z" hostname="webkit" tests="2" failures="0" skipped="0" time="2.539" errors="0">
+<testcase name="home page boots without console errors @smoke" classname="smoke.spec.ts" time="1.492">
+</testcase>
+<testcase name="brand mark renders with Cormorant italic + horse icon @smoke" classname="smoke.spec.ts" time="1.047">
+</testcase>
+</testsuite>
+<testsuite name="smoke.spec.ts" timestamp="2026-04-25T16:39:54.509Z" hostname="mobile-iphone" tests="2" failures="0" skipped="0" time="2.495" errors="0">
+<testcase name="home page boots without console errors @smoke" classname="smoke.spec.ts" time="1.471">
+</testcase>
+<testcase name="brand mark renders with Cormorant italic + horse icon @smoke" classname="smoke.spec.ts" time="1.024">
+</testcase>
+</testsuite>
+<testsuite name="smoke.spec.ts" timestamp="2026-04-25T16:39:54.509Z" hostname="mobile-pixel" tests="2" failures="0" skipped="0" time="2.785" errors="0">
+<testcase name="home page boots without console errors @smoke" classname="smoke.spec.ts" time="2.271">
+</testcase>
+<testcase name="brand mark renders with Cormorant italic + horse icon @smoke" classname="smoke.spec.ts" time="0.514">
+</testcase>
+</testsuite>
+</testsuites>

@@ -1,4 +1,4 @@
-import { themeQuartz, type Theme } from "ag-grid-community";
+import { type Theme,themeQuartz } from "ag-grid-community";
 
 /**
  * PaddocPro AG Grid theme — derives from quartz with brand tokens.

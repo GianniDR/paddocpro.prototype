@@ -1,7 +1,9 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono, Cormorant_Garamond } from "next/font/google";
-import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
+
+import type { Metadata } from "next";
+import { Cormorant_Garamond,Geist, Geist_Mono } from "next/font/google";
+
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
