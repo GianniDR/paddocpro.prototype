@@ -1,19 +1,20 @@
 "use client";
 
 import type { ColDef } from "ag-grid-community";
-import { Search, Sparkles } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { FeatureGrid } from "@/components/shell/feature-grid";
+import { FeatureToolbar } from "@/components/shell/feature-toolbar";
 import { StatusBadge } from "@/components/shell/status-badge";
-import { Badge } from "@/components/ui/badge";
+import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useSession } from "@/lib/auth/current";
 import { formatDate, formatHands } from "@/lib/format";
 import { now } from "@/lib/mock/clock";
 import { useDataset } from "@/lib/mock/store";
+
 interface Row {
   id: string;
   stableName: string;
@@ -29,21 +30,13 @@ interface Row {
   passportExpiry: string;
 }
 
-const CHIPS = [
-  { slug: "all", label: "All" },
-  { slug: "isolating", label: "In isolation" },
-  { slug: "vet_care", label: "Vet care" },
-  { slug: "vacc-overdue", label: "Vacc overdue" },
-  { slug: "passport-expiring", label: "Passport expiring" },
-] as const;
-
 export function HorsesGrid() {
   const dataset = useDataset();
   const session = useSession();
   const router = useRouter();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [search, setSearch] = useState("");
-  const [chip, setChip] = useState<(typeof CHIPS)[number]["slug"]>("all");
+  const [active, setActive] = useState<Set<string>>(new Set(["all"]));
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -83,20 +76,6 @@ export function HorsesGrid() {
       });
   }, [dataset, tenantId]);
 
-  const filtered = useMemo(() => {
-    const tenantNow = now().getTime();
-    return rows.filter((r) => {
-      if (chip === "isolating" && r.healthStatus !== "isolating") return false;
-      if (chip === "vet_care" && r.healthStatus !== "vet_care") return false;
-      if (chip === "vacc-overdue" && r.vaccStatus !== "overdue") return false;
-      if (chip === "passport-expiring") {
-        const exp = Date.parse(r.passportExpiry);
-        if (!(exp - tenantNow < 60 * 86_400_000 && exp - tenantNow > -1 * 86_400_000)) return false;
-      }
-      return true;
-    });
-  }, [rows, chip]);
-
   const counts = useMemo(() => {
     const tenantNow = now().getTime();
     return {
@@ -111,77 +90,79 @@ export function HorsesGrid() {
     };
   }, [rows]);
 
+  const chips: StatusChip[] = [
+    { slug: "all", label: "All", count: counts.all },
+    { slug: "isolating", label: "Isolating", count: counts.isolating },
+    { slug: "vet_care", label: "Vet care", count: counts.vet_care },
+    { slug: "overdue", label: "Vacc overdue", count: counts["vacc-overdue"] },
+    { slug: "passport-expiring", label: "Passport expiring", count: counts["passport-expiring"] },
+  ];
+
+  const filtered = useMemo(() => {
+    if (active.has("all")) return rows;
+    const tenantNow = now().getTime();
+    return rows.filter((r) => {
+      if (active.has("isolating") && r.healthStatus === "isolating") return true;
+      if (active.has("vet_care") && r.healthStatus === "vet_care") return true;
+      if (active.has("overdue") && r.vaccStatus === "overdue") return true;
+      if (active.has("passport-expiring")) {
+        const exp = Date.parse(r.passportExpiry);
+        if (exp - tenantNow < 60 * 86_400_000 && exp - tenantNow > -1 * 86_400_000) return true;
+      }
+      return false;
+    });
+  }, [rows, active]);
+
+  const toggleChip = (slug: string) => {
+    setActive((prev) => {
+      const next = new Set(prev);
+      if (slug === "all") return new Set(["all"]);
+      next.delete("all");
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      if (next.size === 0) next.add("all");
+      return next;
+    });
+  };
+
   const columnDefs: ColDef<Row>[] = useMemo(
     () => [
-      {
-        field: "stableName",
-        headerName: "Horse",
-        width: 220,
-        pinned: "left",
-        cellRenderer: (p: { data?: Row }) => {
-          if (!p.data) return null;
-          return (
-            <div className="flex items-center gap-2 py-1">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <div className="flex flex-col">
-                <span className="font-medium leading-tight">{p.data.stableName}</span>
-                <span className="text-[11px] text-muted-foreground leading-tight">
-                  {p.data.registeredName}
-                </span>
-              </div>
-            </div>
-          );
-        },
-      },
+      { field: "stableName", headerName: "Stable name", width: 160 },
+      { field: "registeredName", headerName: "Registered name", width: 200 },
       {
         field: "healthStatus",
         headerName: "Health",
-        width: 130,
+        width: 140,
         cellRenderer: (p: { value?: string }) => <StatusBadge status={p.value ?? "healthy"} />,
       },
-      {
-        field: "ownerName",
-        headerName: "Owner",
-        width: 180,
-      },
-      {
-        field: "stableLabel",
-        headerName: "Stable",
-        width: 110,
-      },
-      {
-        field: "liveryName",
-        headerName: "Livery",
-        width: 200,
-      },
+      { field: "ownerName", headerName: "Owner", width: 180 },
+      { field: "stableLabel", headerName: "Stable", width: 110 },
+      { field: "liveryName", headerName: "Livery", width: 200 },
       {
         field: "vaccStatus",
         headerName: "Vacc status",
         width: 140,
         cellRenderer: (p: { value?: string }) => <StatusBadge status={p.value ?? "current"} />,
       },
-      {
-        field: "breed",
-        headerName: "Breed",
-        width: 160,
-      },
+      { field: "breed", headerName: "Breed", width: 160 },
       {
         field: "sex",
         headerName: "Sex",
         width: 100,
-        cellRenderer: (p: { value?: string }) => (p.value ? p.value.charAt(0).toUpperCase() + p.value.slice(1) : ""),
+        valueFormatter: (p) =>
+          p.value ? String(p.value).charAt(0).toUpperCase() + String(p.value).slice(1) : "",
       },
       {
         field: "heightHands",
         headerName: "Height",
         width: 100,
-        cellRenderer: (p: { value?: number }) => (p.value ? formatHands(p.value) : ""),
+        valueFormatter: (p) => (p.value ? formatHands(p.value as number) : ""),
       },
       {
         field: "passportExpiry",
         headerName: "Passport exp.",
         width: 140,
-        cellRenderer: (p: { value?: string }) => formatDate(p.value),
+        valueFormatter: (p) => formatDate(p.value as string),
       },
     ],
     [],
@@ -190,64 +171,37 @@ export function HorsesGrid() {
   const handleRowClick = (row: Row) => router.push(`/horses/${row.id}`);
 
   return (
-    <div className="flex flex-col gap-3 p-4 pb-12 flex-1">
-      <div className="flex flex-wrap gap-2 items-center">
-        <div className="relative flex-1 min-w-[280px] max-w-md">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
-          <Input
-            type="search"
-            placeholder="Search horses, owners, stables…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-8 pl-7 text-sm bg-card"
-            data-testid="horses-grid-search"
-          />
-        </div>
-        <Button
-          size="sm"
-          data-testid="horses-grid-cta"
-          onClick={() => router.push("/horses/new")}
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="px-4 pt-3 flex items-center gap-2">
+        <FeatureToolbar
+          search={search}
+          onSearchChange={setSearch}
+          placeholder="Search horses, owners, stables…"
         >
-          + Add horse
-        </Button>
-      </div>
-
-      <div className="flex flex-wrap gap-2" data-testid="horses-grid-chip-row">
-        {CHIPS.map((c) => (
-          <button
-            key={c.slug}
-            type="button"
-            data-testid={`chip-horses-${c.slug}`}
-            onClick={() => setChip(c.slug)}
-            className={
-              "inline-flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-xs font-medium transition " +
-              (chip === c.slug
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-card hover:bg-accent/40 border-border text-foreground")
-            }
+          <Button
+            size="sm"
+            data-testid="horses-grid-cta"
+            onClick={() => router.push("/horses/new")}
           >
-            {c.label}
-            <Badge
-              variant="secondary"
-              className={
-                "h-4 px-1.5 text-[10px] " +
-                (chip === c.slug ? "bg-primary-foreground/20 text-primary-foreground" : "")
-              }
-            >
-              {counts[c.slug]}
-            </Badge>
-          </button>
-        ))}
+            <Plus size={14} /> Add horse
+          </Button>
+        </FeatureToolbar>
       </div>
 
-      <FeatureGrid
-        testId="horses-grid"
-        rowData={filtered}
-        columnDefs={columnDefs}
-        onRowClick={handleRowClick}
-        quickFilterText={search}
-        defaultSortField="stableName"
-      />
+      <div className="px-4 pt-3 pb-0 flex flex-wrap" data-testid="horses-grid-chip-row">
+        <StatusChipRow chips={chips} active={active} onToggle={toggleChip} />
+      </div>
+
+      <div className="flex-1 px-4 pt-3 pb-3 overflow-hidden flex flex-col">
+        <FeatureGrid
+          testId="horses-grid"
+          rowData={filtered}
+          columnDefs={columnDefs}
+          onRowClick={handleRowClick}
+          quickFilterText={search}
+          defaultSortField="stableName"
+        />
+      </div>
     </div>
   );
 }

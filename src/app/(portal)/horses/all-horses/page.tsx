@@ -1,11 +1,11 @@
-import { HorsesDashboard } from "@/components/horses/horses-dashboard";
+import { HorsesGrid } from "@/components/horses/horses-grid";
 import { HorsesTabs } from "@/components/horses/horses-tabs";
 
-export default function HorsesPage() {
+export default function HorsesGridPage() {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <HorsesTabs />
-      <HorsesDashboard />
+      <HorsesGrid />
     </div>
   );
 }
