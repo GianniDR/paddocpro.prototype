@@ -1,9 +1,7 @@
-import { Construction } from "lucide-react";
-
+import { CommunicationShell } from "@/components/communication/communication-shell";
 import { PaddyTrigger } from "@/components/layout/paddy-trigger";
 import { TenantSwitcher } from "@/components/layout/tenant-switcher";
 import { UserMenu } from "@/components/layout/user-menu";
-import { EmptyState } from "@/components/shell/empty-state";
 import { PageHeader } from "@/components/shell/page-header";
 
 export default function CommunicationPage() {
@@ -19,12 +17,7 @@ export default function CommunicationPage() {
           </>
         }
       />
-      <EmptyState
-        icon={Construction}
-        title="Communication module"
-        body="Coming up in the next pass — grids, detail views, create flows."
-        testId="communication-empty"
-      />
+      <CommunicationShell />
     </>
   );
 }

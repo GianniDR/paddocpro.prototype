@@ -3,7 +3,9 @@
 import type { ColDef } from "ag-grid-community";
 import { useMemo } from "react";
 
+import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
 import { FeatureGrid } from "@/components/shell/feature-grid";
+import { GenericDetail } from "@/components/shell/generic-detail";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { useSession } from "@/lib/auth/current";
 import { formatDateTime } from "@/lib/format";
@@ -24,6 +26,7 @@ export function TasksGrid() {
   const dataset = useDataset();
   const session = useSession();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
+  const [selectedId, setSelectedId] = useIdParam();
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -78,9 +81,55 @@ export function TasksGrid() {
     [],
   );
 
+  const sel = dataset.tasks.find((t) => t.id === selectedId);
+  const horse = sel?.horseId ? dataset.horses.find((h) => h.id === sel.horseId) : null;
+
   return (
     <div className="flex flex-col gap-3 p-4 pb-12 flex-1">
-      <FeatureGrid testId="tasks-grid" rowData={rows} columnDefs={columnDefs} defaultSortField="dueAt" />
+      <FeatureGrid
+        testId="tasks-grid"
+        rowData={rows}
+        columnDefs={columnDefs}
+        defaultSortField="dueAt"
+        onRowClick={(row) => setSelectedId(row.id)}
+      />
+      <DetailSheet
+        open={!!sel}
+        onClose={() => setSelectedId(null)}
+        title={sel?.title ?? "Task"}
+        subtitle={sel ? `${sel.type.replace("_", " ")} · ${sel.priority}` : ""}
+        testId="task-sheet"
+      >
+        {sel && (
+          <GenericDetail
+            sections={[
+              {
+                fields: [
+                  { label: "Title", value: sel.title },
+                  { label: "Type", value: sel.type.replace("_", " ") },
+                  { label: "Priority", value: <StatusBadge status={sel.priority} /> },
+                  { label: "Status", value: <StatusBadge status={sel.status} /> },
+                  { label: "Due", value: formatDateTime(sel.dueAt) },
+                  { label: "Completed", value: formatDateTime(sel.completedAt) },
+                  {
+                    label: "Assignee",
+                    value:
+                      dataset.users.find((u) => u.id === sel.assigneeId)?.firstName +
+                      " " +
+                      (dataset.users.find((u) => u.id === sel.assigneeId)?.lastName ?? ""),
+                  },
+                  { label: "Notes", value: sel.notes ?? "—" },
+                ],
+              },
+            ]}
+            drillLinks={
+              horse
+                ? [{ label: `Open ${horse.stableName}`, href: `/horses/${horse.id}`, testId: `drill-horse-${horse.id}` }]
+                : []
+            }
+          />
+        )}
+      </DetailSheet>
     </div>
   );
 }

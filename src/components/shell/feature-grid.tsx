@@ -4,11 +4,11 @@ import "ag-grid-community/styles/ag-theme-quartz.css";
 
 import {
   AllCommunityModule,
+  type CellClickedEvent,
   type ColDef,
   type GridApi,
   type GridReadyEvent,
   ModuleRegistry,
-  type RowClickedEvent,
   type SelectionChangedEvent,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
@@ -63,10 +63,10 @@ export function FeatureGrid<T extends { id: string }>({
     [defaultSortField, defaultSortDirection],
   );
 
-  const handleRowClicked = useCallback(
-    (e: RowClickedEvent<T>) => {
+  const handleCellClicked = useCallback(
+    (e: CellClickedEvent<T>) => {
       // Ignore clicks on the checkbox-only column.
-      if (e.event && (e.event.target as HTMLElement)?.closest('[col-id="__select"]')) return;
+      if (e.colDef.colId === "__select") return;
       if (e.data && onRowClick) onRowClick(e.data);
     },
     [onRowClick],
@@ -112,7 +112,7 @@ export function FeatureGrid<T extends { id: string }>({
             columnDefs={fullColDefs}
             quickFilterText={quickFilterText}
             onGridReady={onGridReady}
-            onRowClicked={handleRowClicked}
+            onCellClicked={handleCellClicked}
             onSelectionChanged={handleSelectionChanged}
             rowSelection={{ mode: "multiRow", checkboxes: true, enableClickSelection: false }}
             suppressMovableColumns={false}

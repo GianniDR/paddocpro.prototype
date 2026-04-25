@@ -4,6 +4,8 @@ import type { ColDef } from "ag-grid-community";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { ClientDetail } from "@/components/clients/client-detail";
+import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { Button } from "@/components/ui/button";
@@ -31,6 +33,7 @@ export function ClientsGrid() {
   const session = useSession();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [search, setSearch] = useState("");
+  const [selectedId, setSelectedId] = useIdParam();
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -139,7 +142,17 @@ export function ClientsGrid() {
         columnDefs={columnDefs}
         quickFilterText={search}
         defaultSortField="fullName"
+        onRowClick={(row) => setSelectedId(row.id)}
       />
+      <DetailSheet
+        open={!!selectedId}
+        onClose={() => setSelectedId(null)}
+        title={rows.find((r) => r.id === selectedId)?.fullName ?? "Client"}
+        subtitle={rows.find((r) => r.id === selectedId)?.email}
+        testId="client-sheet"
+      >
+        {selectedId && <ClientDetail clientId={selectedId} />}
+      </DetailSheet>
     </div>
   );
 }

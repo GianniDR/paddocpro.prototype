@@ -3,10 +3,13 @@
 import type { ColDef } from "ag-grid-community";
 import { useMemo } from "react";
 
+import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
 import { FeatureGrid } from "@/components/shell/feature-grid";
+import { GenericDetail } from "@/components/shell/generic-detail";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth/current";
+import { formatDate } from "@/lib/format";
 import { useDataset } from "@/lib/mock/store";
 
 interface Row {
@@ -25,6 +28,7 @@ export function StablesGrid() {
   const dataset = useDataset();
   const session = useSession();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
+  const [selectedId, setSelectedId] = useIdParam();
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -69,12 +73,57 @@ export function StablesGrid() {
     [],
   );
 
+  const sel = dataset.stables.find((s) => s.id === selectedId);
+  const occHorse = sel ? dataset.horses.find((h) => h.id === sel.currentHorseId) : null;
+
   return (
     <div className="flex flex-col gap-3 p-4 pb-12 flex-1">
       <div className="flex justify-end">
         <Button size="sm" data-testid="stables-grid-cta">+ Add stable</Button>
       </div>
-      <FeatureGrid testId="stables-grid" rowData={rows} columnDefs={columnDefs} defaultSortField="block" />
+      <FeatureGrid
+        testId="stables-grid"
+        rowData={rows}
+        columnDefs={columnDefs}
+        defaultSortField="block"
+        onRowClick={(row) => setSelectedId(row.id)}
+      />
+      <DetailSheet
+        open={!!sel}
+        onClose={() => setSelectedId(null)}
+        title={sel ? `Stable ${sel.block} ${sel.number}` : "Stable"}
+        subtitle={sel?.designation}
+        testId="stable-sheet"
+      >
+        {sel && (
+          <GenericDetail
+            sections={[
+              {
+                fields: [
+                  { label: "Status", value: <StatusBadge status={sel.status} /> },
+                  { label: "Block", value: sel.block },
+                  { label: "Number", value: sel.number },
+                  { label: "Dimensions", value: sel.dimensions },
+                  { label: "Default bedding", value: sel.defaultBeddingType },
+                  { label: "Designation", value: sel.designation },
+                  { label: "Currently housing", value: occHorse?.stableName ?? "—" },
+                  ...(sel.outOfServiceReason
+                    ? [
+                        { label: "Out of service reason", value: sel.outOfServiceReason },
+                        { label: "Expected return", value: formatDate(sel.outOfServiceUntil) },
+                      ]
+                    : []),
+                ],
+              },
+            ]}
+            drillLinks={
+              occHorse
+                ? [{ label: `Open ${occHorse.stableName}`, href: `/horses/${occHorse.id}`, testId: `drill-horse-${occHorse.id}` }]
+                : []
+            }
+          />
+        )}
+      </DetailSheet>
     </div>
   );
 }

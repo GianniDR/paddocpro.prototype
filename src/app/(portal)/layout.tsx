@@ -4,6 +4,10 @@ import { SessionBootstrap } from "@/components/layout/session-bootstrap";
 import { PaddyPanel } from "@/components/paddy/paddy-panel";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
+// Portal pages depend on URL search params (sheet detail state) + in-memory data
+// — never prerender statically.
+export const dynamic = "force-dynamic";
+
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   return (
     <SessionBootstrap>
