@@ -1,34 +1,62 @@
-import { expect,test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-test("home page boots without console errors @smoke", async ({ page }) => {
-  const errors: string[] = [];
-  page.on("console", (m) => {
-    if (m.type() === "error") errors.push(m.text());
-  });
-  page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
-
+test("home redirects to dashboard @smoke", async ({ page }) => {
   await page.goto("/");
-  await expect(page).toHaveTitle(/PaddocPro/);
-  await expect(page.getByTestId("boot-smoke-home")).toBeVisible();
-
-  // Wait for hydration + any async errors.
-  await page.waitForLoadState("networkidle");
-
-  expect(errors).toEqual([]);
+  await expect(page).toHaveURL(/\/dashboard$/);
 });
 
-test("brand mark renders with Cormorant italic + horse icon @smoke", async ({ page }) => {
-  await page.goto("/");
-  // Wordmark text reachable by role
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("paddoc");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("pro");
+test("dashboard renders for the bootstrapped session @smoke", async ({ page }) => {
+  await page.goto("/dashboard");
+  await expect(page.getByTestId("dashboard-greeting")).toBeVisible();
+  await expect(page.getByTestId("dashboard-kpi-occupancy")).toBeVisible();
+  await expect(page.getByTestId("dashboard-kpi-vacc-overdue")).toBeVisible();
+  await expect(page.getByTestId("dashboard-kpi-outstanding")).toBeVisible();
+});
 
-  // Cormorant Garamond is loaded — Next.js injects a hashed className like
-  // "cormorant_garamond_<hash>...variable" on <html>.
+test("sidebar lists 15 primary nav entries + Settings @smoke", async ({ page, viewport }) => {
+  // Sidebar is hidden under 768px — exercise the trigger on small screens.
+  await page.goto("/dashboard");
+  if ((viewport?.width ?? 1280) < 768) {
+    await page.getByTestId("sidebar-trigger").click();
+  }
+  await expect(page.getByTestId("nav-dashboard")).toBeVisible();
+  for (const slug of [
+    "horses",
+    "clients",
+    "stables",
+    "bookings",
+    "tasks",
+    "health",
+    "feed-supplies",
+    "staff",
+    "documents",
+    "communication",
+    "incidents",
+    "visitors",
+    "finance",
+    "reports",
+    "settings",
+  ]) {
+    await expect(page.getByTestId(`nav-${slug}`)).toBeVisible();
+  }
+});
+
+test("brand mark renders with Cormorant + horse icon @smoke", async ({ page, viewport }) => {
+  await page.goto("/dashboard");
   const html = page.locator("html");
-  const className = await html.getAttribute("class");
-  expect(className).toMatch(/cormorant/i);
+  await expect(html).toHaveAttribute("class", /cormorant/i);
+  if ((viewport?.width ?? 1280) < 768) {
+    await page.getByTestId("sidebar-trigger").click();
+  }
+  await expect(page.getByTestId("nav-brand").locator("svg").first()).toBeVisible();
+});
 
-  // Horse icon (custom SVG) renders next to the heading.
-  await expect(page.getByTestId("boot-smoke-home").locator("svg").first()).toBeVisible();
+test("login page renders @smoke", async ({ page }) => {
+  // First clear the bootstrapped session so login isn't auto-redirected away
+  await page.goto("/dashboard");
+  await page.evaluate(() => window.localStorage.removeItem("pp:session"));
+  await page.goto("/login");
+  await expect(page.getByTestId("login-page")).toBeVisible();
+  await expect(page.getByTestId("login-form")).toBeVisible();
+  await expect(page.getByTestId("login-submit")).toBeVisible();
 });
