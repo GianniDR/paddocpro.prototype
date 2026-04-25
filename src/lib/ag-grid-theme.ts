@@ -1,22 +1,30 @@
-import { type Theme,themeQuartz } from "ag-grid-community";
+import { type Theme, themeQuartz } from "ag-grid-community";
 
 /**
- * PaddocPro AG Grid theme — derives from quartz with brand tokens.
- * All colours reference CSS custom properties so dark-mode toggles automatically.
- *
- * Source of truth: design/brand-tokens.md §4 + design/fitness-checklists.md §1.
+ * PaddocPro AG Grid theme — re-tokened to match riskhub-1experience quartz spec.
  */
 export const paddocproTheme: Theme = themeQuartz.withParams({
+  accentColor: "#202228",
+  backgroundColor: "#FFFFFF",
+  borderColor: "#BDCCDB",
+  borderRadius: 4,
+  cellHorizontalPaddingScale: 1,
+  cellTextColor: "#717a83",
+  columnBorder: false,
   fontFamily: "var(--font-geist-sans)",
   fontSize: 14,
-  headerFontWeight: 500,
-  headerBackgroundColor: "var(--muted)",
-  headerTextColor: "var(--muted-foreground)",
-  oddRowBackgroundColor: "transparent",
-  rowHoverColor: "color-mix(in oklch, var(--accent) 35%, transparent)",
-  selectedRowBackgroundColor: "color-mix(in oklch, var(--primary) 8%, transparent)",
-  borderColor: "var(--border)",
-  wrapperBorderRadius: 6,
-  rowHeight: 44,
-  headerHeight: 40,
+  foregroundColor: "#131416",
+  headerBackgroundColor: "#FFFFFF",
+  headerFontFamily: "var(--font-geist-sans)",
+  headerRowBorder: true,
+  headerTextColor: "#131416",
+  iconSize: 16,
+  oddRowBackgroundColor: "#FFFFFF",
+  rowHoverColor: "#e3eeff80",
+  selectedRowBackgroundColor: "#e3eeff",
+  rowBorder: true,
+  rowVerticalPaddingScale: 1,
+  spacing: 8,
+  wrapperBorder: true,
+  wrapperBorderRadius: 12,
 });
