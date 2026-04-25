@@ -41,7 +41,7 @@ export function DetailScaffold({
           {subtitle && <p className="text-sm text-[#4c5258]">{subtitle}</p>}
         </div>
       </div>
-      <FeatureTabBar tabs={tabs} />
+      {tabs.length > 0 && <FeatureTabBar tabs={tabs} />}
       <div className="flex flex-1 overflow-auto bg-[#e5ebf1] gap-4 p-4">{children}</div>
       {stickyToolbar}
     </div>

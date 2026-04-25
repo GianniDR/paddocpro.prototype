@@ -1,15 +1,14 @@
 "use client";
 
 import type { ColDef } from "ag-grid-community";
-import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { AddHorseModal } from "@/components/horses/add-horse-modal";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { FeatureToolbar } from "@/components/shell/feature-toolbar";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
-import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth/current";
 import { formatDate, formatHands } from "@/lib/format";
 import { now } from "@/lib/mock/clock";
@@ -178,13 +177,7 @@ export function HorsesGrid() {
           onSearchChange={setSearch}
           placeholder="Search horses, owners, stables…"
         >
-          <Button
-            size="sm"
-            data-testid="horses-grid-cta"
-            onClick={() => router.push("/horses/new")}
-          >
-            <Plus size={14} /> Add horse
-          </Button>
+          <AddHorseModal />
         </FeatureToolbar>
       </div>
 
