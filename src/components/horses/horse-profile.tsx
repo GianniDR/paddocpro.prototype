@@ -3,18 +3,19 @@
 import {
   CalendarDays,
   ChevronLeft,
-  Edit,
   FileText,
   HeartPulse,
   Move,
   Receipt,
-  Shield,
   Sparkles,
   Wheat,
 } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 
+import { EditHorseDialog } from "@/components/horses/edit-horse-dialog";
+import { LogHealthEventDialog } from "@/components/horses/log-health-event-dialog";
+import { MarkIsolatingDialog } from "@/components/horses/mark-isolating-dialog";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -123,22 +124,23 @@ function HorseProfileBody({ horse }: { horse: Horse }) {
 
       {/* Sticky toolbar */}
       <div className="sticky top-12 z-20 border-b bg-background/95 backdrop-blur px-4 py-3 flex items-center gap-2 flex-wrap" data-testid="horse-profile-toolbar">
-        <Button variant="outline" size="sm" data-testid="horse-profile-toolbar-edit">
-          <Edit className="h-3.5 w-3.5" /> Edit
-        </Button>
+        <EditHorseDialog horse={horse} />
         <Button variant="outline" size="sm" data-testid="horse-profile-toolbar-move">
           <Move className="h-3.5 w-3.5" /> Move
         </Button>
-        <Button variant="outline" size="sm" data-testid="horse-profile-toolbar-mark-isolating">
-          <Shield className="h-3.5 w-3.5" /> Mark isolating
-        </Button>
+        <MarkIsolatingDialog horseId={horse.id} horseName={horse.stableName} />
         <div className="ml-auto flex gap-2">
-          <Button variant="outline" size="sm" data-testid="horse-profile-toolbar-paddy">
-            <Sparkles className="h-3.5 w-3.5" /> Ask Paddy about Whisper
+          <Button
+            variant="outline"
+            size="sm"
+            data-testid="horse-profile-toolbar-paddy"
+            onClick={() => {
+              if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("paddy:toggle"));
+            }}
+          >
+            <Sparkles className="h-3.5 w-3.5" /> Ask Paddy about {horse.stableName}
           </Button>
-          <Button size="sm" data-testid="horse-profile-toolbar-cta">
-            <HeartPulse className="h-3.5 w-3.5" /> Log health event
-          </Button>
+          <LogHealthEventDialog horseId={horse.id} horseName={horse.stableName} />
         </div>
       </div>
 

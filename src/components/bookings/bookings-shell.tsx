@@ -6,6 +6,7 @@ import { useState } from "react";
 import { BookingSheetShell } from "@/components/bookings/booking-sheet-shell";
 import { BookingsGrid } from "@/components/bookings/bookings-grid";
 import { CalendarWeek } from "@/components/bookings/calendar-week";
+import { NewBookingDialog } from "@/components/bookings/new-booking-dialog";
 import { Button } from "@/components/ui/button";
 
 export function BookingsShell() {
@@ -29,6 +30,9 @@ export function BookingsShell() {
         >
           <List className="h-3.5 w-3.5" /> List
         </Button>
+        <div className="ml-auto">
+          <NewBookingDialog />
+        </div>
       </div>
       {view === "calendar" ? <CalendarWeek /> : <BookingsGrid />}
       <BookingSheetShell />

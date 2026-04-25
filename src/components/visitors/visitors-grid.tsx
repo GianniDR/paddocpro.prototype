@@ -8,6 +8,7 @@ import { FeatureGrid } from "@/components/shell/feature-grid";
 import { GenericDetail } from "@/components/shell/generic-detail";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { Button } from "@/components/ui/button";
+import { SignInVisitorDialog } from "@/components/visitors/sign-in-dialog";
 import { useSession } from "@/lib/auth/current";
 import { formatDateTime } from "@/lib/format";
 import { useDataset } from "@/lib/mock/store";
@@ -73,7 +74,7 @@ export function VisitorsGrid() {
     <div className="flex flex-col gap-3 p-4 pb-12 flex-1">
       <div className="flex gap-2 justify-end">
         <Button size="sm" variant="outline" data-testid="visitors-grid-fire">Fire roll-call</Button>
-        <Button size="sm" data-testid="visitors-grid-cta">+ Sign in visitor</Button>
+        <SignInVisitorDialog />
       </div>
       <FeatureGrid
         testId="visitors-grid"

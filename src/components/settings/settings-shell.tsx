@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 const SECTIONS = [
   { slug: "yard-profile", icon: Building, title: "Yard profile", body: "Name, address, emergency contacts.", href: "/settings/yard-profile", available: true },
   { slug: "users", icon: Users, title: "Users & roles", body: "Manage staff, clients and visiting professionals.", href: "/settings/users", available: true },
-  { slug: "rbac", icon: Shield, title: "Roles & permissions", body: "RBAC matrix per role.", href: "#", available: false },
+  { slug: "rbac", icon: Shield, title: "Roles & permissions", body: "RBAC matrix per role.", href: "/settings/rbac", available: true },
   { slug: "xero", icon: Database, title: "Xero", body: "OAuth, organisation mapping, livery package codes.", href: "/settings/xero", available: true },
   { slug: "billing", icon: Receipt, title: "Billing", body: "Subscription, invoicing date, VAT, payment terms.", href: "#", available: false },
   { slug: "audit", icon: FileText, title: "Audit log", body: "Every change, every user, every timestamp.", href: "/settings/audit-log", available: true },

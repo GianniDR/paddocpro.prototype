@@ -1,15 +1,19 @@
 "use client";
 
 import type { ColDef } from "ag-grid-community";
-import { useMemo } from "react";
+import { Check, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { GenericDetail } from "@/components/shell/generic-detail";
 import { StatusBadge } from "@/components/shell/status-badge";
+import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth/current";
 import { formatDateTime } from "@/lib/format";
-import { useDataset } from "@/lib/mock/store";
+import { now } from "@/lib/mock/clock";
+import { mutate, useDataset } from "@/lib/mock/store";
 
 interface Row {
   id: string;
@@ -27,6 +31,8 @@ export function TasksGrid() {
   const session = useSession();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [selectedId, setSelectedId] = useIdParam();
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -46,6 +52,40 @@ export function TasksGrid() {
         };
       });
   }, [dataset, tenantId]);
+
+  async function completeOne(id: string) {
+    setBusy(true);
+    const userId = session?.userId ?? "";
+    await mutate((d) => {
+      const t = d.tasks.find((t) => t.id === id);
+      if (!t || t.status === "completed") return;
+      t.status = "completed";
+      t.completedAt = now().toISOString();
+      t.completedById = userId;
+      t.updatedAt = now().toISOString();
+    });
+    setBusy(false);
+    toast.success("Task completed");
+  }
+
+  async function bulkComplete() {
+    if (selectedIds.length === 0) return;
+    setBusy(true);
+    const userId = session?.userId ?? "";
+    await mutate((d) => {
+      for (const id of selectedIds) {
+        const t = d.tasks.find((t) => t.id === id);
+        if (!t || t.status === "completed") continue;
+        t.status = "completed";
+        t.completedAt = now().toISOString();
+        t.completedById = userId;
+        t.updatedAt = now().toISOString();
+      }
+    });
+    setBusy(false);
+    toast.success(`${selectedIds.length} task${selectedIds.length === 1 ? "" : "s"} completed`);
+    setSelectedIds([]);
+  }
 
   const columnDefs: ColDef<Row>[] = useMemo(
     () => [
@@ -76,8 +116,34 @@ export function TasksGrid() {
         width: 130,
         cellRenderer: (p: { value?: string }) => <StatusBadge status={p.value ?? "pending"} />,
       },
+      {
+        colId: "__row-action",
+        headerName: "",
+        width: 100,
+        sortable: false,
+        filter: false,
+        cellRenderer: (p: { data?: Row }) => {
+          if (!p.data) return null;
+          if (p.data.status === "completed")
+            return <span className="text-xs text-emerald-600">✓ Done</span>;
+          return (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                void completeOne(p.data!.id);
+              }}
+              data-testid={`tasks-grid-complete-${p.data.id}`}
+              className="inline-flex items-center gap-1 rounded-md border bg-card px-2 py-1 text-xs hover:bg-accent transition"
+            >
+              <Check className="h-3 w-3" /> Complete
+            </button>
+          );
+        },
+      },
       { field: "notes", headerName: "Notes", width: 200 },
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
@@ -86,12 +152,37 @@ export function TasksGrid() {
 
   return (
     <div className="flex flex-col gap-3 p-4 pb-12 flex-1">
+      {selectedIds.length > 0 && (
+        <div
+          className="sticky bottom-4 z-30 mx-auto inline-flex items-center gap-3 rounded-md border bg-card px-3 py-2 shadow-md self-center"
+          data-testid="tasks-bulk-bar"
+        >
+          <span className="text-sm font-medium">{selectedIds.length} selected</span>
+          <Button
+            size="sm"
+            onClick={bulkComplete}
+            disabled={busy}
+            data-testid="tasks-bulk-complete"
+          >
+            <Check className="h-3.5 w-3.5" /> Mark complete
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setSelectedIds([])}
+            data-testid="tasks-bulk-clear"
+          >
+            <X className="h-3.5 w-3.5" /> Clear
+          </Button>
+        </div>
+      )}
       <FeatureGrid
         testId="tasks-grid"
         rowData={rows}
         columnDefs={columnDefs}
         defaultSortField="dueAt"
         onRowClick={(row) => setSelectedId(row.id)}
+        onSelectionChanged={(rows) => setSelectedIds(rows.map((r) => r.id))}
       />
       <DetailSheet
         open={!!sel}
