@@ -1,14 +1,17 @@
-import { HealthShell } from "@/components/health/health-shell";
 import { PaddyTrigger } from "@/components/layout/paddy-trigger";
 import { TenantSwitcher } from "@/components/layout/tenant-switcher";
 import { UserMenu } from "@/components/layout/user-menu";
+import { IntegrationsShell } from "@/components/settings/integrations-shell";
 import { PageHeader } from "@/components/shell/page-header";
 
-export default function HealthPage() {
+export default function IntegrationsPage() {
   return (
     <>
       <PageHeader
-        breadcrumb={[{ label: "Health" }]}
+        breadcrumb={[
+          { label: "Settings", href: "/settings" },
+          { label: "Integrations" },
+        ]}
         rightSlot={
           <>
             <TenantSwitcher />
@@ -17,7 +20,7 @@ export default function HealthPage() {
           </>
         }
       />
-      <HealthShell />
+      <IntegrationsShell />
     </>
   );
 }

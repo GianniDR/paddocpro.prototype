@@ -3,6 +3,7 @@
 import type { ColDef } from "ag-grid-community";
 import { useMemo } from "react";
 
+import { RecordPaymentDialog } from "@/components/finance/record-payment-dialog";
 import { RunMonthlyInvoicingDialog } from "@/components/finance/run-monthly-invoicing-dialog";
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
 import { FeatureGrid } from "@/components/shell/feature-grid";
@@ -113,6 +114,7 @@ export function FinanceGrid() {
         title={sel ? `Invoice ${sel.invoiceNumber}` : "Invoice"}
         subtitle={clientUser ? `${clientUser.firstName} ${clientUser.lastName}` : ""}
         testId="invoice-sheet"
+        toolbar={sel ? <RecordPaymentDialog invoice={sel} /> : null}
       >
         {sel && (
           <GenericDetail

@@ -10,6 +10,7 @@ const SECTIONS = [
   { slug: "users", icon: Users, title: "Users & roles", body: "Manage staff, clients and visiting professionals.", href: "/settings/users", available: true },
   { slug: "rbac", icon: Shield, title: "Roles & permissions", body: "RBAC matrix per role.", href: "/settings/rbac", available: true },
   { slug: "xero", icon: Database, title: "Xero", body: "OAuth, organisation mapping, livery package codes.", href: "/settings/xero", available: true },
+  { slug: "integrations", icon: Database, title: "Integrations", body: "Stripe, GoCardless, Twilio.", href: "/settings/integrations", available: true },
   { slug: "billing", icon: Receipt, title: "Billing", body: "Subscription, invoicing date, VAT, payment terms.", href: "#", available: false },
   { slug: "audit", icon: FileText, title: "Audit log", body: "Every change, every user, every timestamp.", href: "/settings/audit-log", available: true },
   { slug: "gdpr", icon: FileLock, title: "GDPR tooling", body: "SAR workflow, right to erasure, data export.", href: "#", available: false },

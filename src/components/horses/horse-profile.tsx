@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { useMemo } from "react";
 
+import { ArchiveHorseDialog } from "@/components/horses/archive-horse-dialog";
 import { EditHorseDialog } from "@/components/horses/edit-horse-dialog";
 import { LogHealthEventDialog } from "@/components/horses/log-health-event-dialog";
 import { MarkIsolatingDialog } from "@/components/horses/mark-isolating-dialog";
@@ -129,6 +130,7 @@ function HorseProfileBody({ horse }: { horse: Horse }) {
           <Move className="h-3.5 w-3.5" /> Move
         </Button>
         <MarkIsolatingDialog horseId={horse.id} horseName={horse.stableName} />
+        <ArchiveHorseDialog horse={horse} />
         <div className="ml-auto flex gap-2">
           <Button
             variant="outline"

@@ -3,6 +3,7 @@
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
 import { GenericDetail } from "@/components/shell/generic-detail";
 import { StatusBadge } from "@/components/shell/status-badge";
+import { MarkMaintenanceDialog } from "@/components/stables/mark-maintenance-dialog";
 import { formatDate } from "@/lib/format";
 import { useDataset } from "@/lib/mock/store";
 
@@ -21,6 +22,7 @@ export function StableSheetShell() {
       title={sel ? `Stable ${sel.block} ${sel.number}` : "Stable"}
       subtitle={sel?.designation}
       testId="stable-sheet"
+      toolbar={sel ? <MarkMaintenanceDialog stableId={sel.id} /> : null}
     >
       {sel && (
         <GenericDetail

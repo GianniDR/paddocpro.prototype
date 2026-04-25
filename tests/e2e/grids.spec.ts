@@ -22,7 +22,11 @@ const GRIDS: Cfg[] = [
     beforeGrid: async (page) => page.getByTestId("bookings-view-list").click(),
   },
   { route: "/tasks", testId: "tasks-grid" },
-  { route: "/health", testId: "health-grid" },
+  {
+    route: "/health",
+    testId: "health-grid",
+    beforeGrid: async (page) => page.getByTestId("health-view-list").click(),
+  },
   { route: "/finance", testId: "finance-grid", cta: "finance-grid-run-monthly" },
 ];
 
