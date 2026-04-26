@@ -21,7 +21,7 @@ export function FeatureToolbar({
   className,
 }: FeatureToolbarProps) {
   return (
-    <div className={cn("flex items-center gap-2", className)} data-testid="feature-toolbar">
+    <div className={cn("flex w-full items-center gap-2", className)} data-testid="feature-toolbar">
       <div className="relative flex-1">
         <Search
           size={14}
