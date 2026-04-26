@@ -1,15 +1,23 @@
-There are three hundred and seventy thousand horses in livery in the United Kingdom. Almost every one of them is tracked on a piece of paper, in a WhatsApp group, or in someone's head.
+Two million people in Britain ride a horse every single week.
 
-The yard manager keeps it all together. Until the vaccination is missed. The invoice goes out late. The vet shows up when the horse is already out. The owner gets nervous. And the manager — the heart of the yard — burns out.
+Behind every one of those riders is a yard. And behind every yard is a person like Lucy.
 
-PaddocPro is the operating system for a livery yard.
+Lucy runs Riverbend Stables. Thirty-one horses. Twenty-four owners. Seven vets, four farriers, eighty-nine reminders this week.
 
-Every horse is linked to its owner, its stable, its livery package, its vaccinations, its bills. Click anything. Drill into anything.
+It all lives in her head. A paper diary. Three Excel spreadsheets. Seventeen WhatsApp groups.
 
-And every yard gets Paddy. An AI assistant that already knows your horses, your owners, your finances. Ask Paddy anything. The answers are real, the citations are real, and Paddy never crosses tenant boundaries.
+When Lucy misses a vaccination, the horse pays. When the invoice goes out late, trust slips. When Lucy burns out, the yard breaks.
 
-One operator. Three yards. Twelve yards. PaddocPro is multi-tenant from the schema up — the way real operators run real businesses.
+This is a one and a half billion pound industry held together by goodwill.
 
-Audit trails. Incident workflows. Role-based access. Xero-ready monthly invoicing. Compliance isn't a checkbox — it's how the product works.
+Introducing PaddocPro.
 
-We're raising eight hundred thousand to onboard our first ten yards and ship the production build. The prototype is real. The market is waiting. Come build it with us.
+One database for the horses, the people, the schedule, and the money. Every entity connected. Every action audited. Click anything. Drill into anything.
+
+And every yard gets Paddy. An AI that already knows your horses, your owners, your finances. Ask Paddy anything. The answers are real. The citations are real. The tenant boundaries are hard-coded.
+
+One operator. Three yards. Twelve yards. PaddocPro is multi-tenant from the schema up. Audit trails. Incident workflows. Role-based access. Xero, wired in.
+
+We're raising eight hundred thousand. Ten design-partner yards. Production launch. Q3.
+
+The wave is starting. Come build it with us.

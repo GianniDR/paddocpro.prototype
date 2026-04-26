@@ -3,166 +3,330 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1920, height=1080" />
-    <title>PaddocPro — pitch</title>
+    <title>PaddocPro — pitch v2</title>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600;1,700&family=Inter:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600;1,700&family=Inter:wght@400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
     <style>
       :root {
+        --ink: #0d0f12;
+        --ink-2: #1a1d23;
+        --charcoal: #202228;
         --slate-100: #f2f5f8;
         --slate-200: #e5ebf1;
         --slate-300: #bdccdb;
         --slate-700: #4c5258;
-        --charcoal: #202228;
-        --white: #ffffff;
+        --cream: #fefdfc;
+        --amber: #f59e0b;
+        --amber-soft: #fcd34d;
+        --emerald: #10b981;
       }
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      html,
-      body {
-        margin: 0;
-        width: 1920px;
-        height: 1080px;
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body {
+        margin: 0; width: 1920px; height: 1080px;
         overflow: hidden;
-        background: var(--slate-200);
-        color: var(--charcoal);
+        background: var(--ink);
+        color: var(--cream);
         font-family: "Inter", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
       }
       #root {
         position: relative;
         width: 1920px;
         height: 1080px;
-        background: var(--slate-200);
+        background: var(--ink);
         overflow: hidden;
       }
-      .clip {
-        opacity: 0;
-      }
-      .scene {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-      .card {
-        position: absolute;
-        inset: 0;
-        background: var(--slate-200);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 32px;
-        padding: 0 200px;
-        text-align: center;
+      .clip { opacity: 0; }
+
+      /* --- Card surfaces --- */
+      .card-dark, .card-light, .card-charcoal {
+        position: absolute; inset: 0; padding: 0 180px;
+        display: flex; flex-direction: column;
         z-index: 5;
       }
-      .brand {
+      .card-dark { background: var(--ink); color: var(--cream); }
+      .card-light { background: var(--slate-200); color: var(--charcoal); }
+      .card-charcoal { background: var(--charcoal); color: var(--cream); }
+
+      .center-v { justify-content: center; }
+      .center-h { align-items: center; text-align: center; }
+      .left { align-items: flex-start; text-align: left; }
+
+      /* --- Typography --- */
+      .display-italic {
         font-family: "Cormorant Garamond", serif;
         font-style: italic;
         font-weight: 600;
-        font-size: 220px;
-        color: var(--charcoal);
         letter-spacing: -0.02em;
         line-height: 1;
       }
-      .tagline {
+      .mono-num {
+        font-family: "Inter", sans-serif;
+        font-weight: 900;
+        letter-spacing: -0.06em;
+        font-variant-numeric: tabular-nums;
+        line-height: 0.95;
+      }
+      .mono-num.amber { color: var(--amber); }
+      .stat-label {
+        font-family: "Inter", sans-serif;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: var(--slate-300);
+        font-size: 22px;
+      }
+      .body-bold {
+        font-family: "Inter", sans-serif;
+        font-weight: 800;
+        line-height: 1.05;
+      }
+      .body-light {
+        font-family: "Inter", sans-serif;
+        font-weight: 400;
+        color: var(--slate-300);
+      }
+
+      /* --- Specific compositions --- */
+
+      /* Big establishing stat: small label + huge number */
+      .stat-block { display: flex; flex-direction: column; gap: 16px; }
+      .stat-block .label { font-size: 28px; }
+      .stat-block .num { font-size: 320px; }
+      .stat-block .sub {
+        font-size: 56px;
+        font-weight: 500;
+        color: var(--cream);
+        max-width: 1300px;
+        line-height: 1.1;
+      }
+
+      /* Lucy intro */
+      .lucy-card .who {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-weight: 600;
+        font-size: 200px;
+        line-height: 1;
+        color: var(--cream);
+      }
+      .lucy-card .where {
+        font-family: "Inter", sans-serif;
+        font-weight: 500;
+        font-size: 56px;
+        color: var(--slate-300);
+        margin-top: 16px;
+      }
+
+      /* Animated number list (mental load) */
+      .load-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px 80px;
+      }
+      .load-row { display: flex; align-items: baseline; gap: 24px; }
+      .load-row .num {
+        font-family: "Inter", sans-serif;
+        font-weight: 900;
+        font-size: 140px;
+        color: var(--amber);
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.04em;
+        min-width: 280px;
+        text-align: right;
+      }
+      .load-row .lbl {
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+        font-size: 36px;
+        color: var(--cream);
+      }
+      .load-foot {
+        margin-top: 64px;
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-weight: 500;
+        font-size: 80px;
+        color: var(--cream);
+      }
+
+      /* Tools (paper / excel / whatsapp) */
+      .tools-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 60px;
+      }
+      .tool {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 24px;
+        padding: 48px 36px;
+        display: flex; flex-direction: column; gap: 16px; align-items: center;
+        text-align: center;
+      }
+      .tool .icon { font-size: 80px; }
+      .tool .name {
+        font-family: "Inter", sans-serif;
+        font-weight: 700;
+        font-size: 36px;
+        color: var(--cream);
+      }
+      .tool .qty {
+        font-family: "Inter", sans-serif;
+        font-weight: 500;
+        font-size: 22px;
+        color: var(--amber-soft);
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+      }
+
+      /* Pain lines */
+      .pain-stack { display: flex; flex-direction: column; gap: 28px; }
+      .pain-stack .line {
+        font-family: "Inter", sans-serif;
+        font-weight: 800;
+        font-size: 80px;
+        line-height: 1.05;
+        color: var(--slate-300);
+      }
+      .pain-stack .line.last { color: var(--cream); }
+      .pain-stack .line .accent { color: var(--amber); }
+
+      /* Industry callout */
+      .industry .num {
+        font-size: 280px;
+        color: var(--amber);
+      }
+      .industry .body {
+        font-size: 56px;
+        color: var(--cream);
+        font-weight: 500;
+        max-width: 1300px;
+        line-height: 1.15;
+      }
+
+      /* Introducing reveal — extra big */
+      .intro-card .pre {
+        font-family: "Inter", sans-serif;
+        font-weight: 500;
+        font-size: 36px;
+        text-transform: uppercase;
+        letter-spacing: 0.4em;
+        color: var(--amber);
+      }
+      .intro-card .brand {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-weight: 600;
+        font-size: 320px;
+        color: var(--cream);
+        line-height: 0.95;
+        letter-spacing: -0.03em;
+        margin-top: 24px;
+      }
+      .intro-card .tagline {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-weight: 500;
+        font-size: 48px;
+        color: var(--slate-300);
+        margin-top: 16px;
+      }
+
+      /* Elevator pitch */
+      .pitch-card .lead {
         font-family: "Cormorant Garamond", serif;
         font-style: italic;
         font-weight: 500;
         font-size: 56px;
-        color: var(--slate-700);
+        color: var(--amber);
+        margin-bottom: 24px;
       }
-      .stat-card {
-        position: absolute;
-        inset: 0;
-        background: var(--slate-200);
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        justify-content: center;
-        gap: 16px;
-        padding: 0 180px;
-        z-index: 5;
-      }
-      .stat-card .line {
-        font-family: "Inter", sans-serif;
-        font-weight: 800;
-        font-size: 140px;
-        color: var(--charcoal);
-        line-height: 1;
-        letter-spacing: -0.04em;
-      }
-      .pain-card {
-        position: absolute;
-        inset: 0;
-        background: var(--slate-200);
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        justify-content: center;
-        gap: 24px;
-        padding: 0 180px;
-        z-index: 5;
-      }
-      .pain-card .line {
+      .pitch-card .line {
         font-family: "Inter", sans-serif;
         font-weight: 700;
-        font-size: 92px;
-        color: var(--slate-700);
+        font-size: 88px;
         line-height: 1.1;
+        color: var(--cream);
       }
-      .pain-card .line.last {
-        color: var(--charcoal);
+      .pitch-card .line .accent { color: var(--amber); }
+
+      /* Scene videos */
+      .scene {
+        position: absolute; inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
       }
-      .end {
-        position: absolute;
-        inset: 0;
-        background: var(--charcoal);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 24px;
-        z-index: 5;
-        color: var(--white);
-      }
-      .end .brand {
-        color: var(--white);
-        font-size: 200px;
-      }
-      .end .contact {
-        font-family: "Inter", sans-serif;
-        font-weight: 400;
-        font-size: 32px;
-        color: var(--slate-300);
-      }
+
+      /* Scene labels */
       .label {
         position: absolute;
         z-index: 10;
         font-family: "Inter", sans-serif;
-        font-weight: 700;
-        color: var(--white);
-        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+        font-weight: 800;
+        color: var(--cream);
+        text-shadow: 0 2px 16px rgba(0,0,0,0.7), 0 1px 4px rgba(0,0,0,0.6);
         left: 80px;
         bottom: 100px;
-        font-size: 56px;
-        line-height: 1.1;
+        font-size: 64px;
+        line-height: 1.05;
+        max-width: 1100px;
       }
+      .label.amber { color: var(--amber); }
       .label.center {
-        left: 50%;
-        bottom: auto;
-        top: 50%;
+        left: 50%; bottom: auto; top: 50%;
         transform: translate(-50%, -50%);
-        font-size: 84px;
+        font-size: 96px;
+        text-align: center;
+        max-width: 1400px;
+        background: rgba(13,15,18,0.55);
+        padding: 32px 56px;
+        border-radius: 24px;
+        backdrop-filter: blur(8px);
       }
+
+      /* Closing ask */
+      .ask-card .pre {
+        font-family: "Inter", sans-serif;
+        font-weight: 500;
+        font-size: 32px;
+        text-transform: uppercase;
+        letter-spacing: 0.4em;
+        color: var(--amber);
+      }
+      .ask-card .figure {
+        font-family: "Inter", sans-serif;
+        font-weight: 900;
+        font-size: 360px;
+        color: var(--cream);
+        line-height: 0.9;
+        letter-spacing: -0.05em;
+        font-variant-numeric: tabular-nums;
+        margin-top: 8px;
+      }
+      .ask-card .lbl {
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+        font-size: 40px;
+        color: var(--slate-300);
+        margin-top: -8px;
+      }
+      .ask-card .closer {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-weight: 600;
+        font-size: 84px;
+        color: var(--amber);
+        margin-top: 64px;
+      }
+
+      /* Animated number "ticker" — 31 horses, etc */
+      .ticker { display: inline-block; }
     </style>
   </head>
   <body>
@@ -170,162 +334,172 @@
       id="root"
       data-composition-id="main"
       data-start="0"
-      data-duration="69"
+      data-duration="85"
       data-width="1920"
       data-height="1080"
     >
-      <div id="card-brand" class="card clip" data-start="0" data-duration="4" data-track-index="0">
-        <div class="brand">paddoc | pro</div>
-        <div class="tagline">The operating system for the modern livery yard.</div>
+      <!-- 0–4 — Cinematic hook: "2 million people ride a horse every week" -->
+      <div id="hook" class="card-dark center-v left clip" data-start="0" data-duration="4" data-track-index="0">
+        <div class="stat-block">
+          <span class="label stat-label">Britain · Every week</span>
+          <span class="num mono-num amber"><span id="hook-num" class="ticker">2,000,000</span></span>
+          <span class="sub">people ride a horse.</span>
+        </div>
       </div>
 
-      <div id="card-stats" class="stat-card clip" data-start="4" data-duration="5.5" data-track-index="0">
-        <div class="line">370,000 horses.</div>
-        <div class="line">9,500 yards.</div>
-        <div class="line">Zero systems.</div>
+      <!-- 4–9 — World context: 9,500 yards / £1.5bn -->
+      <div id="world" class="card-dark center-v left clip" data-start="4" data-duration="5" data-track-index="0">
+        <div class="stat-block">
+          <span class="label stat-label">UK livery sector</span>
+          <span class="num mono-num"><span class="amber">9,500</span> yards.</span>
+          <span class="sub"><span style="color:var(--amber)">£1.5 billion</span> a year. Held together by goodwill.</span>
+        </div>
       </div>
 
-      <div id="card-pain" class="pain-card clip" data-start="9.5" data-duration="5" data-track-index="0">
-        <div class="line">Missed vaccinations.</div>
-        <div class="line">Late invoices.</div>
-        <div class="line">Double-booked vets.</div>
-        <div class="line last">Yard managers burn out.</div>
+      <!-- 9–16 — Meet Lucy -->
+      <div id="lucy" class="card-dark center-v center-h clip lucy-card" data-start="9" data-duration="7" data-track-index="0">
+        <div class="who">Meet Lucy.</div>
+        <div class="where">She runs Riverbend Stables.</div>
       </div>
 
-      <video
-        id="scene-3-dashboard"
-        class="scene clip"
-        data-start="14.5"
-        data-duration="6.96"
-        data-track-index="1"
-        src="./assets/scene-3-dashboard.mp4"
-        muted
-        playsinline
-      ></video>
-
-      <video
-        id="scene-4-horses"
-        class="scene clip"
-        data-start="21.46"
-        data-duration="12.2"
-        data-track-index="1"
-        src="./assets/scene-4-horses-grid-and-profile.mp4"
-        muted
-        playsinline
-      ></video>
-      <div id="label-horses" class="label clip" data-start="23" data-duration="6" data-track-index="2">
-        Click anything.<br />Drill into anything.
+      <!-- 16–22 — Lucy's mental load -->
+      <div id="load" class="card-dark center-v left clip" data-start="16" data-duration="6" data-track-index="0">
+        <div style="display:flex;flex-direction:column;gap:48px;">
+          <span class="stat-label">All in her head</span>
+          <div class="load-grid">
+            <div class="load-row"><span class="num">31</span><span class="lbl">horses</span></div>
+            <div class="load-row"><span class="num">24</span><span class="lbl">owners</span></div>
+            <div class="load-row"><span class="num">7</span><span class="lbl">vets</span></div>
+            <div class="load-row"><span class="num">4</span><span class="lbl">farriers</span></div>
+            <div class="load-row" style="grid-column: span 2;"><span class="num" style="min-width:380px;">89</span><span class="lbl">reminders this week</span></div>
+          </div>
+        </div>
       </div>
 
-      <video
-        id="scene-5-paddy"
-        class="scene clip"
-        data-start="33.66"
-        data-duration="13.84"
-        data-track-index="1"
-        src="./assets/scene-5-paddy.mp4"
-        muted
-        playsinline
-      ></video>
-      <div id="label-paddy-1" class="label clip" data-start="35" data-duration="5" data-track-index="2">
-        Ask. Don't search.
-      </div>
-      <div id="label-paddy-2" class="label clip" data-start="42" data-duration="5" data-track-index="2">
-        Citations are real.<br />Tenant boundaries are hard-coded.
-      </div>
-
-      <video
-        id="scene-6-tenant"
-        class="scene clip"
-        data-start="47.5"
-        data-duration="5.44"
-        data-track-index="1"
-        src="./assets/scene-6-yard-map-and-tenant.mp4"
-        muted
-        playsinline
-      ></video>
-      <div id="label-tenant" class="label clip" data-start="48.5" data-duration="4" data-track-index="2">
-        One operator.<br />Many yards.<br />One source of truth.
+      <!-- 22–27 — Lucy's tools -->
+      <div id="tools" class="card-dark center-v center-h clip" data-start="22" data-duration="5" data-track-index="0">
+        <div style="width:100%;display:flex;flex-direction:column;gap:48px;align-items:center;">
+          <span class="stat-label">Her operating system</span>
+          <div class="tools-row" style="width: 100%; max-width: 1500px;">
+            <div class="tool">
+              <div class="icon">📓</div>
+              <div class="name">Paper diary</div>
+              <div class="qty">on the wall</div>
+            </div>
+            <div class="tool">
+              <div class="icon">📊</div>
+              <div class="name">Excel</div>
+              <div class="qty">3 spreadsheets</div>
+            </div>
+            <div class="tool">
+              <div class="icon">💬</div>
+              <div class="name">WhatsApp</div>
+              <div class="qty">17 groups</div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <video
-        id="scene-7a-audit"
-        class="scene clip"
-        data-start="52.94"
-        data-duration="3.36"
-        data-track-index="1"
-        src="./assets/scene-7a-audit-log.mp4"
-        muted
-        playsinline
-      ></video>
-      <div id="label-audit" class="label center clip" data-start="53.1" data-duration="3.1" data-track-index="2">
-        Audit log.
+      <!-- 27–33 — Pain consequences -->
+      <div id="pain" class="card-dark center-v left clip" data-start="27" data-duration="6" data-track-index="0">
+        <div class="pain-stack">
+          <div class="line">A vaccination is missed. <span class="accent">The horse pays.</span></div>
+          <div class="line">An invoice slips. <span class="accent">Trust slips.</span></div>
+          <div class="line last">Lucy burns out. <span class="accent">The yard breaks.</span></div>
+        </div>
       </div>
 
-      <video
-        id="scene-7b-incidents"
-        class="scene clip"
-        data-start="56.3"
-        data-duration="3.36"
-        data-track-index="1"
-        src="./assets/scene-7b-incidents.mp4"
-        muted
-        playsinline
-      ></video>
-      <div id="label-incidents" class="label center clip" data-start="56.5" data-duration="3.1" data-track-index="2">
-        Incident workflow.
+      <!-- 33–37 — Industry stat -->
+      <div id="industry" class="card-dark center-v center-h clip industry" data-start="33" data-duration="4" data-track-index="0">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center;">
+          <span class="stat-label">An industry held together by</span>
+          <span class="num mono-num">goodwill.</span>
+        </div>
       </div>
 
-      <video
-        id="scene-7c-rbac"
-        class="scene clip"
-        data-start="59.66"
-        data-duration="3.08"
-        data-track-index="1"
-        src="./assets/scene-7c-rbac.mp4"
-        muted
-        playsinline
-      ></video>
-      <div id="label-rbac" class="label center clip" data-start="59.86" data-duration="2.8" data-track-index="2">
-        RBAC.
+      <!-- 37–42 — INTRODUCING PADDOCPRO (charcoal background, big reveal) -->
+      <div id="intro" class="card-charcoal center-v center-h clip intro-card" data-start="37" data-duration="5" data-track-index="0">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <span class="pre">Introducing</span>
+          <span class="brand">paddoc<span style="color:var(--amber)"> | </span>pro</span>
+          <span class="tagline">The operating system for the modern livery yard.</span>
+        </div>
       </div>
 
-      <video
-        id="scene-7d-finance"
-        class="scene clip"
-        data-start="62.74"
-        data-duration="4.28"
-        data-track-index="1"
-        src="./assets/scene-7d-finance.mp4"
-        muted
-        playsinline
-      ></video>
-      <div id="label-finance" class="label center clip" data-start="62.94" data-duration="4" data-track-index="2">
-        Xero. Wired in.
+      <!-- 42–46 — Elevator pitch -->
+      <div id="pitch" class="card-dark center-v left clip pitch-card" data-start="42" data-duration="4" data-track-index="0">
+        <div>
+          <div class="lead">One database. Every entity. One source of truth.</div>
+          <div class="line">The horses. The people.</div>
+          <div class="line">The schedule. <span class="accent">The money.</span></div>
+        </div>
       </div>
 
-      <div id="card-end" class="end clip" data-start="67.02" data-duration="2" data-track-index="0">
-        <div class="brand">paddoc | pro</div>
-        <div class="contact">paddocpro.example.com</div>
+      <!-- 46–52 — Dashboard demo -->
+      <video id="scene-3-dashboard" class="scene clip" data-start="46" data-duration="6" data-track-index="1" src="./assets/scene-3-dashboard.mp4" muted playsinline></video>
+      <div id="lbl-dash" class="label clip" data-start="47" data-duration="4" data-track-index="2">
+        Every horse, owner, schedule.<br /><span style="color:var(--amber)">Connected.</span>
       </div>
 
-      <audio
-        id="voiceover"
-        class="clip"
-        data-start="0"
-        data-duration="69"
-        data-track-index="3"
-        data-volume="1.0"
-        src="./assets/voiceover.wav"
-      ></audio>
+      <!-- 52–60 — Horses grid + drill-throughs -->
+      <video id="scene-4-horses" class="scene clip" data-start="52" data-duration="8" data-track-index="1" src="./assets/scene-4-horses-grid-and-profile.mp4" muted playsinline></video>
+      <div id="lbl-horses" class="label clip" data-start="53" data-duration="6" data-track-index="2">
+        Click anything.<br /><span style="color:var(--amber)">Drill into anything.</span>
+      </div>
+
+      <!-- 60–70 — Paddy AI -->
+      <video id="scene-5-paddy" class="scene clip" data-start="60" data-duration="10" data-track-index="1" src="./assets/scene-5-paddy.mp4" muted playsinline></video>
+      <div id="lbl-paddy-1" class="label clip" data-start="61" data-duration="4" data-track-index="2">
+        Meet <span style="color:var(--amber)">Paddy.</span><br />Your yard's AI.
+      </div>
+      <div id="lbl-paddy-2" class="label clip" data-start="65.5" data-duration="4" data-track-index="2">
+        Citations are real.<br /><span style="color:var(--amber)">Tenant boundaries hard-coded.</span>
+      </div>
+
+      <!-- 70–74 — Tenant switch -->
+      <video id="scene-6-tenant" class="scene clip" data-start="70" data-duration="4" data-track-index="1" src="./assets/scene-6-yard-map-and-tenant.mp4" muted playsinline></video>
+      <div id="lbl-tenant" class="label clip" data-start="70.5" data-duration="3.3" data-track-index="2">
+        One operator.<br /><span style="color:var(--amber)">Many yards.</span>
+      </div>
+
+      <!-- 74–76 — Audit log -->
+      <video id="scene-7a-audit" class="scene clip" data-start="74" data-duration="2" data-track-index="1" src="./assets/scene-7a-audit-log.mp4" muted playsinline></video>
+      <div id="lbl-audit" class="label center clip" data-start="74.1" data-duration="1.8" data-track-index="2">Audit log.</div>
+
+      <!-- 76–78 — Incidents -->
+      <video id="scene-7b-incidents" class="scene clip" data-start="76" data-duration="2" data-track-index="1" src="./assets/scene-7b-incidents.mp4" muted playsinline></video>
+      <div id="lbl-incidents" class="label center clip" data-start="76.1" data-duration="1.8" data-track-index="2">Incidents.</div>
+
+      <!-- 78–80 — RBAC -->
+      <video id="scene-7c-rbac" class="scene clip" data-start="78" data-duration="2" data-track-index="1" src="./assets/scene-7c-rbac.mp4" muted playsinline></video>
+      <div id="lbl-rbac" class="label center clip" data-start="78.1" data-duration="1.8" data-track-index="2">Role-based access.</div>
+
+      <!-- 80–82 — Finance -->
+      <video id="scene-7d-finance" class="scene clip" data-start="80" data-duration="2" data-track-index="1" src="./assets/scene-7d-finance.mp4" muted playsinline></video>
+      <div id="lbl-finance" class="label center clip" data-start="80.1" data-duration="1.8" data-track-index="2">Xero. Wired in.</div>
+
+      <!-- 82–85 — Closing ask -->
+      <div id="ask" class="card-charcoal center-v center-h clip ask-card" data-start="82" data-duration="3" data-track-index="0">
+        <div style="display:flex;flex-direction:column;align-items:center;text-align:center;">
+          <span class="pre">Seed round</span>
+          <span class="figure">£800k</span>
+          <span class="lbl">10 design-partner yards · Q3 launch</span>
+          <span class="closer">Come build it with us.</span>
+        </div>
+      </div>
+
+      <!-- Audio: voiceover + music -->
+      <audio id="voiceover" class="clip" data-start="0" data-duration="74" data-track-index="3" data-volume="1.0" src="./assets/voiceover.wav"></audio>
+      <audio id="music" class="clip" data-start="0" data-duration="85" data-track-index="4" data-volume="1.0" src="./assets/music.mp3"></audio>
     </div>
 
     <script>
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
 
-      const FADE_IN = 0.3;
-      const FADE_OUT = 0.3;
+      // Default fade-only animation for clips that don't get a custom one
+      const FADE_IN = 0.35;
+      const FADE_OUT = 0.35;
 
       const clips = document.querySelectorAll(".clip");
       clips.forEach((el) => {
@@ -336,13 +510,13 @@
         const start = parseFloat(el.dataset.start || "0");
         const duration = parseFloat(el.dataset.duration || "0");
         if (duration <= 0) return;
-        const fadeIn = Math.min(FADE_IN, duration / 3);
-        const fadeOut = Math.min(FADE_OUT, duration / 3);
+        const fadeIn = Math.min(FADE_IN, duration / 4);
+        const fadeOut = Math.min(FADE_OUT, duration / 4);
 
         tl.fromTo(
           el,
-          { autoAlpha: 0 },
-          { autoAlpha: 1, duration: fadeIn, ease: "power2.out" },
+          { autoAlpha: 0, y: el.classList.contains("scene") ? 0 : 24 },
+          { autoAlpha: 1, y: 0, duration: fadeIn, ease: "power2.out" },
           start,
         );
         tl.to(
@@ -351,6 +525,46 @@
           start + duration - fadeOut,
         );
       });
+
+      // Custom: ticker animation on hook number "2,000,000"
+      const hookNumEl = document.getElementById("hook-num");
+      if (hookNumEl) {
+        const start = 0.2;
+        const obj = { v: 0 };
+        tl.to(
+          obj,
+          {
+            v: 2_000_000,
+            duration: 2.0,
+            ease: "power3.out",
+            snap: { v: 50_000 },
+            onUpdate: () => {
+              hookNumEl.textContent = Math.round(obj.v).toLocaleString("en-GB");
+            },
+          },
+          start,
+        );
+      }
+
+      // Custom: stagger fade for load-grid items + tools
+      tl.fromTo(
+        "#load .load-row",
+        { autoAlpha: 0, x: -30 },
+        { autoAlpha: 1, x: 0, duration: 0.5, stagger: 0.18, ease: "power2.out" },
+        16.2,
+      );
+      tl.fromTo(
+        "#tools .tool",
+        { autoAlpha: 0, y: 30 },
+        { autoAlpha: 1, y: 0, duration: 0.5, stagger: 0.2, ease: "power2.out" },
+        22.2,
+      );
+      tl.fromTo(
+        "#pain .line",
+        { autoAlpha: 0, x: -40 },
+        { autoAlpha: 1, x: 0, duration: 0.5, stagger: 0.6, ease: "power2.out" },
+        27.2,
+      );
 
       window.__timelines["main"] = tl;
     </script>
