@@ -115,6 +115,7 @@ export function FeatureGrid<T extends { id: string }>({
             defaultToolPanel: "",
           }}
           autoGroupColumnDef={{ headerName: "Group", minWidth: 200 }}
+          autoSizeStrategy={{ type: "fitGridWidth", defaultMinWidth: 100 }}
           pagination
           paginationPageSize={100}
           paginationPageSizeSelector={[25, 50, 100, 200]}
