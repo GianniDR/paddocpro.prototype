@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>PaddocPro — pitch</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600;1,700&family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --slate-100: #f2f5f8;
+        --slate-200: #e5ebf1;
+        --slate-300: #bdccdb;
+        --slate-700: #4c5258;
+        --charcoal: #202228;
+        --white: #ffffff;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--slate-200);
+        color: var(--charcoal);
+        font-family: "Inter", system-ui, sans-serif;
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        background: var(--slate-200);
+        overflow: hidden;
+      }
+      .clip {
+        opacity: 0;
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .card {
+        position: absolute;
+        inset: 0;
+        background: var(--slate-200);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 32px;
+        padding: 0 200px;
+        text-align: center;
+        z-index: 5;
+      }
+      .brand {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-weight: 600;
+        font-size: 220px;
+        color: var(--charcoal);
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+      .tagline {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-weight: 500;
+        font-size: 56px;
+        color: var(--slate-700);
+      }
+      .stat-card {
+        position: absolute;
+        inset: 0;
+        background: var(--slate-200);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 16px;
+        padding: 0 180px;
+        z-index: 5;
+      }
+      .stat-card .line {
+        font-family: "Inter", sans-serif;
+        font-weight: 800;
+        font-size: 140px;
+        color: var(--charcoal);
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .pain-card {
+        position: absolute;
+        inset: 0;
+        background: var(--slate-200);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 24px;
+        padding: 0 180px;
+        z-index: 5;
+      }
+      .pain-card .line {
+        font-family: "Inter", sans-serif;
+        font-weight: 700;
+        font-size: 92px;
+        color: var(--slate-700);
+        line-height: 1.1;
+      }
+      .pain-card .line.last {
+        color: var(--charcoal);
+      }
+      .end {
+        position: absolute;
+        inset: 0;
+        background: var(--charcoal);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        z-index: 5;
+        color: var(--white);
+      }
+      .end .brand {
+        color: var(--white);
+        font-size: 200px;
+      }
+      .end .contact {
+        font-family: "Inter", sans-serif;
+        font-weight: 400;
+        font-size: 32px;
+        color: var(--slate-300);
+      }
+      .label {
+        position: absolute;
+        z-index: 10;
+        font-family: "Inter", sans-serif;
+        font-weight: 700;
+        color: var(--white);
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+        left: 80px;
+        bottom: 100px;
+        font-size: 56px;
+        line-height: 1.1;
+      }
+      .label.center {
+        left: 50%;
+        bottom: auto;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 84px;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="69"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="card-brand" class="card clip" data-start="0" data-duration="4" data-track-index="0">
+        <div class="brand">paddoc | pro</div>
+        <div class="tagline">The operating system for the modern livery yard.</div>
+      </div>
+
+      <div id="card-stats" class="stat-card clip" data-start="4" data-duration="5.5" data-track-index="0">
+        <div class="line">370,000 horses.</div>
+        <div class="line">9,500 yards.</div>
+        <div class="line">Zero systems.</div>
+      </div>
+
+      <div id="card-pain" class="pain-card clip" data-start="9.5" data-duration="5" data-track-index="0">
+        <div class="line">Missed vaccinations.</div>
+        <div class="line">Late invoices.</div>
+        <div class="line">Double-booked vets.</div>
+        <div class="line last">Yard managers burn out.</div>
+      </div>
+
+      <video
+        id="scene-3-dashboard"
+        class="scene clip"
+        data-start="14.5"
+        data-duration="6.96"
+        data-track-index="1"
+        src="./assets/scene-3-dashboard.mp4"
+        muted
+        playsinline
+      ></video>
+
+      <video
+        id="scene-4-horses"
+        class="scene clip"
+        data-start="21.46"
+        data-duration="12.2"
+        data-track-index="1"
+        src="./assets/scene-4-horses-grid-and-profile.mp4"
+        muted
+        playsinline
+      ></video>
+      <div id="label-horses" class="label clip" data-start="23" data-duration="6" data-track-index="2">
+        Click anything.<br />Drill into anything.
+      </div>
+
+      <video
+        id="scene-5-paddy"
+        class="scene clip"
+        data-start="33.66"
+        data-duration="13.84"
+        data-track-index="1"
+        src="./assets/scene-5-paddy.mp4"
+        muted
+        playsinline
+      ></video>
+      <div id="label-paddy-1" class="label clip" data-start="35" data-duration="5" data-track-index="2">
+        Ask. Don't search.
+      </div>
+      <div id="label-paddy-2" class="label clip" data-start="42" data-duration="5" data-track-index="2">
+        Citations are real.<br />Tenant boundaries are hard-coded.
+      </div>
+
+      <video
+        id="scene-6-tenant"
+        class="scene clip"
+        data-start="47.5"
+        data-duration="5.44"
+        data-track-index="1"
+        src="./assets/scene-6-yard-map-and-tenant.mp4"
+        muted
+        playsinline
+      ></video>
+      <div id="label-tenant" class="label clip" data-start="48.5" data-duration="4" data-track-index="2">
+        One operator.<br />Many yards.<br />One source of truth.
+      </div>
+
+      <video
+        id="scene-7a-audit"
+        class="scene clip"
+        data-start="52.94"
+        data-duration="3.36"
+        data-track-index="1"
+        src="./assets/scene-7a-audit-log.mp4"
+        muted
+        playsinline
+      ></video>
+      <div id="label-audit" class="label center clip" data-start="53.1" data-duration="3.1" data-track-index="2">
+        Audit log.
+      </div>
+
+      <video
+        id="scene-7b-incidents"
+        class="scene clip"
+        data-start="56.3"
+        data-duration="3.36"
+        data-track-index="1"
+        src="./assets/scene-7b-incidents.mp4"
+        muted
+        playsinline
+      ></video>
+      <div id="label-incidents" class="label center clip" data-start="56.5" data-duration="3.1" data-track-index="2">
+        Incident workflow.
+      </div>
+
+      <video
+        id="scene-7c-rbac"
+        class="scene clip"
+        data-start="59.66"
+        data-duration="3.08"
+        data-track-index="1"
+        src="./assets/scene-7c-rbac.mp4"
+        muted
+        playsinline
+      ></video>
+      <div id="label-rbac" class="label center clip" data-start="59.86" data-duration="2.8" data-track-index="2">
+        RBAC.
+      </div>
+
+      <video
+        id="scene-7d-finance"
+        class="scene clip"
+        data-start="62.74"
+        data-duration="4.28"
+        data-track-index="1"
+        src="./assets/scene-7d-finance.mp4"
+        muted
+        playsinline
+      ></video>
+      <div id="label-finance" class="label center clip" data-start="62.94" data-duration="4" data-track-index="2">
+        Xero. Wired in.
+      </div>
+
+      <div id="card-end" class="end clip" data-start="67.02" data-duration="2" data-track-index="0">
+        <div class="brand">paddoc | pro</div>
+        <div class="contact">paddocpro.example.com</div>
+      </div>
+
+      <audio
+        id="voiceover"
+        class="clip"
+        data-start="0"
+        data-duration="69"
+        data-track-index="3"
+        data-volume="1.0"
+        src="./assets/voiceover.wav"
+      ></audio>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      const FADE_IN = 0.3;
+      const FADE_OUT = 0.3;
+
+      const clips = document.querySelectorAll(".clip");
+      clips.forEach((el) => {
+        if (el.tagName === "AUDIO") {
+          gsap.set(el, { autoAlpha: 1 });
+          return;
+        }
+        const start = parseFloat(el.dataset.start || "0");
+        const duration = parseFloat(el.dataset.duration || "0");
+        if (duration <= 0) return;
+        const fadeIn = Math.min(FADE_IN, duration / 3);
+        const fadeOut = Math.min(FADE_OUT, duration / 3);
+
+        tl.fromTo(
+          el,
+          { autoAlpha: 0 },
+          { autoAlpha: 1, duration: fadeIn, ease: "power2.out" },
+          start,
+        );
+        tl.to(
+          el,
+          { autoAlpha: 0, duration: fadeOut, ease: "power2.in" },
+          start + duration - fadeOut,
+        );
+      });
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

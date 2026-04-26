@@ -1,0 +1,15 @@
+There are three hundred and seventy thousand horses in livery in the United Kingdom. Almost every one of them is tracked on a piece of paper, in a WhatsApp group, or in someone's head.
+
+The yard manager keeps it all together. Until the vaccination is missed. The invoice goes out late. The vet shows up when the horse is already out. The owner gets nervous. And the manager — the heart of the yard — burns out.
+
+PaddocPro is the operating system for a livery yard.
+
+Every horse is linked to its owner, its stable, its livery package, its vaccinations, its bills. Click anything. Drill into anything.
+
+And every yard gets Paddy. An AI assistant that already knows your horses, your owners, your finances. Ask Paddy anything. The answers are real, the citations are real, and Paddy never crosses tenant boundaries.
+
+One operator. Three yards. Twelve yards. PaddocPro is multi-tenant from the schema up — the way real operators run real businesses.
+
+Audit trails. Incident workflows. Role-based access. Xero-ready monthly invoicing. Compliance isn't a checkbox — it's how the product works.
+
+We're raising eight hundred thousand to onboard our first ten yards and ship the production build. The prototype is real. The market is waiting. Come build it with us.

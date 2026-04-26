@@ -1,129 +1,131 @@
 # PaddocPro pitch — HyperFrames composition
 
-A 90-second investor pitch authored as a single HyperFrames composition. Render to MP4 with one command.
+A **69-second investor pitch** rendered with [HyperFrames](https://github.com/heygen-com/hyperframes). The final MP4 is committed at `renders/paddocpro-pitch.mp4` (13 MB, 1920×1080 @ 30fps).
 
-## How to render
+Watch it: open `renders/paddocpro-pitch.mp4` in any media player, or browse to `https://github.com/GianniDR/paddocpro.prototype/blob/main/docs/pitch/hyperframes/renders/paddocpro-pitch.mp4` and click the download icon.
 
-From this directory:
+## Pipeline overview
+
+```
+voiceover-script.txt ─┐                                                            
+                      │  hyperframes tts (Kokoro-82M)                              
+                      ▼                                                            
+              assets/voiceover.wav                                                 
+                                                                                   
+record-scenes.config.ts + scenes/record.spec.ts                                    
+                      │  npx playwright test                                       
+                      ▼                                                            
+              scenes/output/*/video.webm                                           
+                      │  ffmpeg → mp4 (h264, dense keyframes, 30fps)              
+                      ▼                                                            
+              assets/scene-*.mp4 (8 files)                                         
+                                                                                   
+                      │                                                            
+                      ▼                                                            
+              index.html (HyperFrames composition)                                 
+                      │  npx hyperframes render                                    
+                      ▼                                                            
+              renders/paddocpro-pitch.mp4                                          
+```
+
+Total wall-clock to produce: **~6 minutes** (the bulk is downloading the Kokoro voice model + Playwright recording the 8 scenes).
+
+## Reproducing
+
+From this directory (`docs/pitch/hyperframes/`):
 
 ```bash
-# 1. Install hyperframes (one-time)
-npx hyperframes init . --skip-template
+# 1) Make sure the dev server is running on port 3030
+cd ../../../ && npm run dev &
+cd docs/pitch/hyperframes
 
-# 2. Drop assets into ./assets/ (see checklist below)
+# 2) Generate voiceover (one-time — ~10s after voice model is cached)
+uv venv --python 3.12 && source .venv/bin/activate
+uv pip install kokoro-onnx soundfile
+npx hyperframes tts voiceover-script.txt --voice bf_emma --lang en-gb --output assets/voiceover.wav
 
-# 3. Live preview while you tweak
-npx hyperframes preview
+# 3) Record the 8 scene videos via Playwright against localhost:3030
+cd ../../../
+npx playwright test --config docs/pitch/hyperframes/record-scenes.config.ts
 
-# 4. Render to MP4
-npx hyperframes render
+# 4) Convert .webm → .mp4 with dense keyframes
+cd docs/pitch/hyperframes
+for src in scenes/output/record-scene-*-record/video.webm; do
+  name=$(echo "$src" | sed -E 's|scenes/output/record-(scene-[^-]+(-[^-]+)*)-record/video.webm|\1|')
+  ffmpeg -y -i "$src" -c:v libx264 -r 30 -g 30 -keyint_min 30 -preset fast -crf 23 \
+    -pix_fmt yuv420p -movflags +faststart -loglevel error "assets/${name}.mp4"
+done
+
+# 5) Lint + render
+npx hyperframes lint
+npx hyperframes render -o renders/paddocpro-pitch.mp4 -f 30 -q standard
 ```
 
-The output lands at `./out/paddocpro-pitch.mp4` (1920×1080, ~90s, ~30MB).
+## Composition timeline
 
-## Assets you need to produce (and where to put them)
+| Time | Element | Source |
+|---|---|---|
+| 0–4s | Brand title card | inline |
+| 4–9.5s | Stat hook ("370,000 horses…") | inline |
+| 9.5–14.5s | Pain card ("Missed vaccinations…") | inline |
+| 14.5–21.5s | Dashboard | `assets/scene-3-dashboard.mp4` |
+| 21.5–33.7s | Horses grid → profile drill-throughs | `assets/scene-4-horses-grid-and-profile.mp4` |
+| 33.7–47.5s | Paddy AI streaming response | `assets/scene-5-paddy.mp4` |
+| 47.5–52.9s | Yard map + tenant switch | `assets/scene-6-yard-map-and-tenant.mp4` |
+| 52.9–56.3s | Audit log | `assets/scene-7a-audit-log.mp4` |
+| 56.3–59.7s | Incident workflow | `assets/scene-7b-incidents.mp4` |
+| 59.7–62.7s | RBAC matrix | `assets/scene-7c-rbac.mp4` |
+| 62.7–67.0s | Finance / monthly invoicing | `assets/scene-7d-finance.mp4` |
+| 67.0–69.0s | End card | inline |
+| 0–69s (overlay) | Voiceover | `assets/voiceover.wav` |
 
-All paths are relative to `./assets/`:
+The voiceover is 67.24s; the final 1.76s is silence with the end card on-screen.
 
-| File | Source | Length | Notes |
-|---|---|---|---|
-| `voiceover.mp3` | ElevenLabs (paste script from `docs/pitch/video-script.md` § "Voiceover script") | 90s | One continuous file. Pick a warm British voice — "Sarah" or "James". |
-| `music.mp3` | Pixabay/Bensound/Epidemic Sound | 90s | Upbeat indie/folk, ~110bpm. Trimmed to 90s with a clean fade-out. |
-| `scene-1-yard-dawn.mp4` | Pexels Videos | 8s | "Horse stable morning" or "yard dawn". 1920×1080 @ 30fps. |
-| `scene-2a-paper-diary.mp4` | Pexels or screen capture of a paper diary | 3s | Close-up of handwritten notes. |
-| `scene-2b-whatsapp.mp4` | Screen capture of any WhatsApp group on your phone (mirrored to your Mac) | 3s | Scrolling messages — blur identifying info. |
-| `scene-2c-excel.mp4` | Screen capture of an Excel sheet with multiple tabs | 3s | Use a fake yard tracker spreadsheet — quick zoom. |
-| `scene-2d-burnout.mp4` | Pexels — "tired person at desk" / "yard worker tired" | 3s | Atmospheric, not literal. |
-| `scene-3-dashboard.mp4` | **Live app screen capture:** `/dashboard` | 6s | "Good morning, Sarah" greeting visible. Pan slowly through KPIs. |
-| `scene-4-horses-grid-and-profile.mp4` | **Live app screen capture:** `/horses/all-horses` → click row → profile → click 4 tabs | 12s | Hover over the Isolating chip first, then click the row. |
-| `scene-5-paddy.mp4` | **Live app screen capture:** Press ⌘J → type "Which horses are overdue for vaccinations?" → wait for response → click a citation | 16s | Type the prompt slowly enough to be readable. |
-| `scene-6-yard-map-and-tenant.mp4` | **Live app screen capture:** `/stables` → click yard map cell → back → tenant switcher dropdown → switch | 10s | The tenant switch is the punchline — pause briefly on the new yard's data. |
-| `scene-7a-audit-log.mp4` | **Live app screen capture:** `/settings/audit-log` | 2.5s | Scroll the grid for one beat. |
-| `scene-7b-incidents.mp4` | **Live app screen capture:** `/incidents/all-incidents` → click a row → workflow stepper | 2.5s | Show the workflow visualisation. |
-| `scene-7c-rbac.mp4` | **Live app screen capture:** `/settings/rbac` | 2.5s | Show the matrix grid. |
-| `scene-7d-finance.mp4` | **Live app screen capture:** `/finance/all-invoices` → Actions menu → Run monthly invoicing dialog | 2.5s | Pause briefly on the dialog. |
+## Editing
 
-## Recording the live app
+Everything is in `index.html` — no proprietary timeline format. Common edits:
 
-```bash
-# Start the dev server in this repo's root
-cd ../../../   # back to /Users/gianni/Desktop/paddocpro-app
-npm run dev
-```
+- **Re-time a scene:** change `data-start` and `data-duration` on its `<video>` and any `.label` overlays bound to that segment.
+- **Change copy on a card:** edit the markup inside `<div class="card">`, `.stat-card`, `.pain-card`, or `.label`.
+- **Change ask figure / contact:** edit the `.end` div near the bottom.
+- **Re-render:** `npx hyperframes render`.
 
-App is at `http://localhost:3030`. Use macOS Cmd+Shift+5 → record selected window → make sure window is exactly 1920×1080. Or use Loom desktop and trim.
+After any edit, run `npx hyperframes lint` to validate.
 
-For best results:
-- Hide the browser chrome (Cmd+Shift+F for full-screen, or use Chrome's "App Mode" via `chrome --app=http://localhost:3030`).
-- Disable any browser extensions that would show on top (LastPass, Grammarly).
-- Run with the `Riverbend Stables` tenant active for Scenes 3–7a-c, switch to a second tenant only during Scene 6.
-- For Scene 5, set Paddy's response to be deterministic — the seeded mock responder uses a prompt-hash so it'll behave the same every recording.
+## Adding background music
 
-## Voiceover
+The composition currently has no music track — voiceover plays solo on a clean slate canvas, which is intentional for an investor pitch (clarity > vibe). To add music:
 
-Paste this script verbatim into ElevenLabs (one block, no annotations — already in `docs/pitch/video-script.md` § "Voiceover script (clean copy)"):
+1. Drop an MP3 at `assets/music.mp3` (90s+, ducked to 0.25 volume in the composition).
+2. Add this audio element inside `#root` in `index.html`:
+   ```html
+   <audio
+     id="music"
+     class="clip"
+     data-start="0"
+     data-duration="69"
+     data-track-index="4"
+     data-volume="0.2"
+     src="./assets/music.mp3"
+   ></audio>
+   ```
+3. Re-render.
 
-> There are three hundred and seventy thousand horses in livery in the United Kingdom. Almost every one of them is tracked on a piece of paper, in a WhatsApp group, or in someone's head.
->
-> The yard manager keeps it all together. Until the vaccination is missed. The invoice goes out late. The vet shows up when the horse is already out. The owner gets nervous. And the manager — the heart of the yard — burns out.
->
-> PaddocPro is the operating system for a livery yard.
->
-> Every horse is linked to its owner, its stable, its livery package, its vaccinations, its bills. Click anything. Drill into anything.
->
-> And every yard gets Paddy. An AI assistant that already knows your horses, your owners, your finances. Ask Paddy anything. The answers are real, the citations are real, and Paddy never crosses tenant boundaries.
->
-> One operator. Three yards. Twelve yards. PaddocPro is multi-tenant from the schema up — the way real operators run real businesses.
->
-> Audit trails. Incident workflows. Role-based access. Xero-ready monthly invoicing. Compliance isn't a checkbox — it's how the product works.
->
-> We're raising eight hundred thousand to onboard our first ten yards and ship the production build. The prototype is real. The market is waiting. Come build it with us.
+Free royalty-free options: [Pixabay Music — "Corporate Inspirational"](https://pixabay.com/music/corporate-inspirational-corporate-music-115035/), [Bensound — "Buddy"](https://www.bensound.com/), or any sub-90bpm acoustic track.
 
-Target read pace: **120 words/minute** (relaxed, confident). Word count is 187 → ~93 seconds. Trim front/back silence to land at exactly 90s.
+## Vertical (9:16) cut
 
-## Music
+For Instagram / TikTok / LinkedIn shorts:
 
-Pick one (90 seconds, upbeat, ~110bpm, folk-or-indie style):
+1. Copy `index.html` to `index-vertical.html`.
+2. Change root: `data-width="1080" data-height="1920"`.
+3. Either re-record screen captures at 1080×1920 (preferred), or accept letterboxing.
+4. Adjust `.label` font sizes (drop bottom-left from 56px → 44px; centred from 84px → 64px).
+5. Render: `npx hyperframes render index-vertical.html -o renders/paddocpro-pitch-vertical.mp4`.
 
-- **Free, no attribution:** [Pixabay — "Corporate Inspirational"](https://pixabay.com/music/corporate-inspirational-corporate-music-115035/) or any track in their "Upbeat" tag.
-- **Free with attribution:** [Bensound — "Buddy"](https://www.bensound.com/royalty-free-music/track/buddy) (£35 if you want to remove the credit).
-- **Subscription (~£12/mo):** [Epidemic Sound — "Sunny Stride" by Frank Schroeter](https://www.epidemicsound.com/) — closest match to the riskhub-1experience tonal target.
+## Troubleshooting
 
-Trim to 90 seconds. Apply a 1.5s fade-out at the end. The composition already ducks the music to 0.25 (`data-volume="0.25"`) so the voiceover sits on top.
-
-## Timeline reference
-
-```
-0s        8s        20s       30s       42s       58s       68s       78s    88s 90s
-├─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼─────────┼──────┼──┤
-│ Hook    │  Pain   │ Reveal+ │ Grid +  │  Paddy  │ Map +   │ Compli- │ Ask  │End│
-│ B-roll  │ montage │  dash   │ profile │  AI     │ tenant  │ ance    │ slide│   │
-└─────────┴─────────┴─────────┴─────────┴─────────┴─────────┴─────────┴──────┴───┘
-```
-
-## Tweaks to the composition
-
-The composition is in `composition.html`. Common edits:
-
-- **Re-time a scene:** change `data-start` and `data-duration` on the `<video>` and any matching `<div class="overlay">`. Both must match.
-- **Change overlay copy:** edit the text inside `<div class="overlay">`.
-- **Change the ask figure:** edit `<div class="figure">£800k</div>` in Scene 8.
-- **Mute the music:** set `data-volume="0"` on `#background-music`.
-- **Re-render after any change:** `npx hyperframes render`.
-
-## What you save by using HyperFrames vs CapCut
-
-- **Reproducible:** the entire video is one file under version control.
-- **Editable by AI:** the prompt to "shorten Scene 4 to 8 seconds" is one find-and-replace.
-- **No timeline UI fiddling.** The timeline IS the HTML.
-- **Free re-renders.** Want a 9:16 vertical version? Change `data-width="1080" data-height="1920"`, re-record the screen captures at portrait, render again.
-
-## If you want a 9:16 vertical cut
-
-Make a copy of `composition.html` as `composition-vertical.html`:
-- Change `data-width="1080" data-height="1920"` on `#stage`.
-- Re-record screen captures at 1080×1920 (or crop existing centre 1080 columns).
-- Adjust overlay font sizes (drop bottom-left from 64px → 48px; centred from 84px → 64px).
-- Render.
-
-The voiceover and music files don't change.
+- **"speech synthesis failed: kokoro-onnx not installed"** → activate the venv (`source .venv/bin/activate`) and install via `uv pip install kokoro-onnx soundfile`.
+- **"sparse keyframes" warning during render** → re-encode the offending mp4 with `ffmpeg -i in.mp4 -c:v libx264 -r 30 -g 30 -keyint_min 30 -movflags +faststart out.mp4`.
+- **"missing_timeline_registry" lint error** → ensure the `<script>` block at the bottom of `index.html` registers `window.__timelines["main"] = gsap.timeline({paused: true})`.
+- **Scene videos look blurry** → Playwright records at the configured viewport. Make sure `record-scenes.config.ts` has `viewport: { width: 1920, height: 1080 }` and `video.size: { width: 1920, height: 1080 }`.

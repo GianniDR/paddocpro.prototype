@@ -1,0 +1,11 @@
+# Hyperframes generated metadata (regenerated per-render)
+hyperframes.json
+meta.json
+transcript.json
+node_modules/
+
+# Python venv (used for kokoro-onnx TTS install)
+.venv/
+
+# Playwright recording outputs (raw .webm files)
+scenes/output/
