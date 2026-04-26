@@ -21,7 +21,14 @@ import { now } from "@/lib/mock/clock";
 import { mutate, useDataset } from "@/lib/mock/store";
 import type { Horse } from "@/types";
 
-export function ArchiveHorseDialog({ horse }: { horse: Horse }) {
+interface ArchiveHorseDialogProps {
+  horse: Horse;
+  /** Controlled open state. When provided, the trigger is not rendered. */
+  open?: boolean;
+  onOpenChange?: (next: boolean) => void;
+}
+
+export function ArchiveHorseDialog({ horse, open: openProp, onOpenChange }: ArchiveHorseDialogProps) {
   const dataset = useDataset();
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
@@ -56,14 +63,16 @@ export function ArchiveHorseDialog({ horse }: { horse: Horse }) {
   }
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger
-        render={
-          <Button variant="outline" size="sm" data-testid="horse-profile-toolbar-archive" disabled={blocked}>
-            <Archive className="h-3.5 w-3.5" /> Archive
-          </Button>
-        }
-      />
+    <AlertDialog open={openProp} onOpenChange={onOpenChange}>
+      {openProp === undefined && (
+        <AlertDialogTrigger
+          render={
+            <Button variant="outline" size="sm" data-testid="horse-profile-toolbar-archive" disabled={blocked}>
+              <Archive className="h-3.5 w-3.5" /> Archive
+            </Button>
+          }
+        />
+      )}
       <AlertDialogContent data-testid="dialog-archive-horse">
         <AlertDialogHeader>
           <AlertDialogTitle>Archive {horse.stableName}?</AlertDialogTitle>

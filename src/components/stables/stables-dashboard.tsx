@@ -5,7 +5,6 @@ import { useMemo } from "react";
 
 import { KpiTile } from "@/components/shell/kpi-tile";
 import { WidgetCard } from "@/components/shell/widget-card";
-import { StableSheetShell } from "@/components/stables/stable-sheet-shell";
 import { YardMap } from "@/components/stables/yard-map";
 import { useSession } from "@/lib/auth/current";
 import { useDataset } from "@/lib/mock/store";
@@ -62,8 +61,6 @@ export function StablesDashboard() {
           <YardMap />
         </WidgetCard>
       </div>
-
-      <StableSheetShell />
     </div>
   );
 }

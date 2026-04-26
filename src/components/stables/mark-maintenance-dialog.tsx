@@ -20,10 +20,26 @@ import { Textarea } from "@/components/ui/textarea";
 import { now } from "@/lib/mock/clock";
 import { mutate, useDataset } from "@/lib/mock/store";
 
-export function MarkMaintenanceDialog({ stableId }: { stableId: string }) {
+interface MarkMaintenanceDialogProps {
+  stableId: string;
+  /** Controlled open state. When provided, the trigger is not rendered. */
+  open?: boolean;
+  onOpenChange?: (next: boolean) => void;
+}
+
+export function MarkMaintenanceDialog({
+  stableId,
+  open: openProp,
+  onOpenChange,
+}: MarkMaintenanceDialogProps) {
   const dataset = useDataset();
   const stable = dataset.stables.find((s) => s.id === stableId);
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = (v: boolean) => {
+    if (onOpenChange) onOpenChange(v);
+    if (openProp === undefined) setInternalOpen(v);
+  };
   const [reason, setReason] = useState("");
   const [until, setUntil] = useState("2026-05-09");
   const [submitting, setSubmitting] = useState(false);
@@ -66,13 +82,15 @@ export function MarkMaintenanceDialog({ stableId }: { stableId: string }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <Button variant="outline" size="sm" data-testid="stable-mark-maintenance-trigger">
-            <Wrench className="h-3.5 w-3.5" /> {isMaintenance ? "End maintenance" : "Mark maintenance"}
-          </Button>
-        }
-      />
+      {openProp === undefined && (
+        <DialogTrigger
+          render={
+            <Button variant="outline" size="sm" data-testid="stable-mark-maintenance-trigger">
+              <Wrench className="h-3.5 w-3.5" /> {isMaintenance ? "End maintenance" : "Mark maintenance"}
+            </Button>
+          }
+        />
+      )}
       <DialogContent className="max-w-md" data-testid="dialog-mark-maintenance">
         <DialogHeader>
           <DialogTitle>

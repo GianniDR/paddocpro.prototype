@@ -1,30 +1,41 @@
 "use client";
 
 import {
+  Archive,
   CalendarDays,
   ChevronLeft,
+  Edit,
   FileText,
   HeartPulse,
+  MoreVertical,
   Move,
   Receipt,
+  Shield,
   Sparkles,
   Wheat,
 } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { ArchiveHorseDialog } from "@/components/horses/archive-horse-dialog";
 import { EditHorseDialog } from "@/components/horses/edit-horse-dialog";
 import { LogHealthEventDialog } from "@/components/horses/log-health-event-dialog";
 import { MarkIsolatingDialog } from "@/components/horses/mark-isolating-dialog";
 import { DetailScaffold } from "@/components/shell/detail-scaffold";
+import { type DetailTab,DetailTabBar } from "@/components/shell/detail-tab-bar";
 import { DetailToolbar } from "@/components/shell/detail-toolbar";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDate, formatDateTime, formatGbp, formatHands } from "@/lib/format";
 import { useDataset } from "@/lib/mock/store";
 import type { Horse } from "@/types";
@@ -93,25 +104,114 @@ function HorseProfileBody({ horse }: { horse: Horse }) {
 
   const subtitle = `${horse.registeredName} · ${formatHands(horse.heightHands)} ${horse.colour} ${horse.sex} · ${ageYears}y · Microchip ${horse.microchipNumber.slice(-6)}`;
 
+  const [tab, setTab] = useState("profile");
+  const [editOpen, setEditOpen] = useState(false);
+  const [isolatingOpen, setIsolatingOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+
+  const tabs: DetailTab[] = [
+    { value: "profile", label: "Profile", testId: "horse-profile-tab-profile" },
+    {
+      value: "health",
+      label: "Health",
+      Icon: HeartPulse,
+      count: horseHealthEvents.length,
+      testId: "horse-profile-tab-health",
+    },
+    {
+      value: "bookings",
+      label: "Bookings",
+      Icon: CalendarDays,
+      count: horseBookings.length,
+      testId: "horse-profile-tab-bookings",
+    },
+    {
+      value: "documents",
+      label: "Documents",
+      Icon: FileText,
+      count: horseDocs.length,
+      testId: "horse-profile-tab-documents",
+    },
+    {
+      value: "feed",
+      label: "Feed plan",
+      Icon: Wheat,
+      testId: "horse-profile-tab-feed",
+    },
+    {
+      value: "charges",
+      label: "Charges",
+      Icon: Receipt,
+      count: horseCharges.length,
+      testId: "horse-profile-tab-charges",
+    },
+    { value: "activity", label: "Activity", testId: "horse-profile-tab-activity" },
+  ];
+
   const toolbar = (
     <DetailToolbar testId="horse-profile-toolbar">
-      <EditHorseDialog horse={horse} />
-      <Button variant="outline" size="sm" data-testid="horse-profile-toolbar-move">
-        <Move className="h-3.5 w-3.5" /> Move
-      </Button>
-      <MarkIsolatingDialog horseId={horse.id} horseName={horse.stableName} />
-      <ArchiveHorseDialog horse={horse} />
       <Button
         variant="outline"
         size="sm"
+        className="bg-white border-[#202228] text-[#202228] hover:bg-[#f2f5f8]"
         data-testid="horse-profile-toolbar-paddy"
         onClick={() => {
           if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("paddy:toggle"));
         }}
       >
-        <Sparkles className="h-3.5 w-3.5" /> Ask Paddy about {horse.stableName}
+        <Sparkles className="h-3.5 w-3.5" /> Ask Paddy
       </Button>
       <LogHealthEventDialog horseId={horse.id} horseName={horse.stableName} />
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="outline"
+              size="sm"
+              className="size-9 p-0 bg-white border-[#202228]"
+              aria-label="More actions"
+              data-testid="horse-profile-toolbar-more"
+            >
+              <MoreVertical size={16} />
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem
+            onClick={() => setEditOpen(true)}
+            data-testid="horse-profile-toolbar-edit"
+          >
+            <Edit size={14} /> Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => toast("Move — coming soon")}
+            data-testid="horse-profile-toolbar-move"
+          >
+            <Move size={14} /> Move
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setIsolatingOpen(true)}
+            data-testid="horse-profile-toolbar-mark-isolating"
+          >
+            <Shield size={14} /> Mark isolating
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setArchiveOpen(true)}
+            className="text-destructive"
+            data-testid="horse-profile-toolbar-archive"
+          >
+            <Archive size={14} /> Archive
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <EditHorseDialog horse={horse} open={editOpen} onOpenChange={setEditOpen} />
+      <MarkIsolatingDialog
+        horseId={horse.id}
+        horseName={horse.stableName}
+        open={isolatingOpen}
+        onOpenChange={setIsolatingOpen}
+      />
+      <ArchiveHorseDialog horse={horse} open={archiveOpen} onOpenChange={setArchiveOpen} />
     </DetailToolbar>
   );
 
@@ -123,7 +223,7 @@ function HorseProfileBody({ horse }: { horse: Horse }) {
       tabs={[]}
       stickyToolbar={toolbar}
     >
-      <Tabs defaultValue="profile" className="flex-1 flex flex-col w-full min-w-0">
+      <div className="flex-1 flex flex-col w-full min-w-0">
         <div className="flex flex-wrap gap-2 mb-3">
           <StatusBadge status={horse.healthStatus} />
           <Badge variant="outline" className="font-normal">
@@ -139,43 +239,16 @@ function HorseProfileBody({ horse }: { horse: Horse }) {
           )}
         </div>
 
-        <TabsList className="h-auto bg-transparent gap-2 px-0 py-2 mb-3" data-testid="horse-profile-tabs">
-          <TabsTrigger value="profile" data-testid="horse-profile-tab-profile" className="gap-1.5">
-            Profile
-          </TabsTrigger>
-          <TabsTrigger value="health" data-testid="horse-profile-tab-health" className="gap-1.5">
-            <HeartPulse className="h-3.5 w-3.5" /> Health
-            <Badge variant="secondary" className="h-4 text-[10px]">
-              {horseHealthEvents.length}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="bookings" data-testid="horse-profile-tab-bookings" className="gap-1.5">
-            <CalendarDays className="h-3.5 w-3.5" /> Bookings
-            <Badge variant="secondary" className="h-4 text-[10px]">
-              {horseBookings.length}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="documents" data-testid="horse-profile-tab-documents" className="gap-1.5">
-            <FileText className="h-3.5 w-3.5" /> Documents
-            <Badge variant="secondary" className="h-4 text-[10px]">
-              {horseDocs.length}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="feed" data-testid="horse-profile-tab-feed" className="gap-1.5">
-            <Wheat className="h-3.5 w-3.5" /> Feed plan
-          </TabsTrigger>
-          <TabsTrigger value="charges" data-testid="horse-profile-tab-charges" className="gap-1.5">
-            <Receipt className="h-3.5 w-3.5" /> Charges
-            <Badge variant="secondary" className="h-4 text-[10px]">
-              {horseCharges.length}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="activity" data-testid="horse-profile-tab-activity">
-            Activity
-          </TabsTrigger>
-        </TabsList>
+        <DetailTabBar
+          tabs={tabs}
+          active={tab}
+          onChange={setTab}
+          testId="horse-profile-tabs"
+          className="-mx-4 mb-3"
+        />
 
-        <TabsContent value="profile" data-testid="horse-profile-tabpanel-profile" className="mt-0">
+        {tab === "profile" && (
+          <div data-testid="horse-profile-tabpanel-profile" className="mt-0">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
@@ -237,9 +310,11 @@ function HorseProfileBody({ horse }: { horse: Horse }) {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
+          </div>
+        )}
 
-        <TabsContent value="health" data-testid="horse-profile-tabpanel-health" className="mt-0 space-y-4">
+        {tab === "health" && (
+          <div data-testid="horse-profile-tabpanel-health" className="mt-0 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             {upcomingDues.slice(0, 4).map((d) => (
               <Card key={d.kind}>
@@ -281,9 +356,11 @@ function HorseProfileBody({ horse }: { horse: Horse }) {
               </table>
             </CardContent>
           </Card>
-        </TabsContent>
+          </div>
+        )}
 
-        <TabsContent value="bookings" data-testid="horse-profile-tabpanel-bookings" className="mt-0">
+        {tab === "bookings" && (
+          <div data-testid="horse-profile-tabpanel-bookings" className="mt-0">
           <Card>
             <CardContent className="p-0">
               <table className="w-full text-sm">
@@ -320,9 +397,11 @@ function HorseProfileBody({ horse }: { horse: Horse }) {
               </table>
             </CardContent>
           </Card>
-        </TabsContent>
+          </div>
+        )}
 
-        <TabsContent value="documents" data-testid="horse-profile-tabpanel-documents" className="mt-0">
+        {tab === "documents" && (
+          <div data-testid="horse-profile-tabpanel-documents" className="mt-0">
           <Card>
             <CardContent className="p-0">
               <table className="w-full text-sm">
@@ -354,9 +433,11 @@ function HorseProfileBody({ horse }: { horse: Horse }) {
               </table>
             </CardContent>
           </Card>
-        </TabsContent>
+          </div>
+        )}
 
-        <TabsContent value="feed" data-testid="horse-profile-tabpanel-feed" className="mt-0">
+        {tab === "feed" && (
+          <div data-testid="horse-profile-tabpanel-feed" className="mt-0">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Daily feed plan</CardTitle>
@@ -377,9 +458,11 @@ function HorseProfileBody({ horse }: { horse: Horse }) {
               {!feedPlan && <p className="text-muted-foreground">No feed plan set.</p>}
             </CardContent>
           </Card>
-        </TabsContent>
+          </div>
+        )}
 
-        <TabsContent value="charges" data-testid="horse-profile-tabpanel-charges" className="mt-0">
+        {tab === "charges" && (
+          <div data-testid="horse-profile-tabpanel-charges" className="mt-0">
           <Card>
             <CardContent className="p-0">
               <table className="w-full text-sm">
@@ -411,16 +494,19 @@ function HorseProfileBody({ horse }: { horse: Horse }) {
               </table>
             </CardContent>
           </Card>
-        </TabsContent>
+          </div>
+        )}
 
-        <TabsContent value="activity" data-testid="horse-profile-tabpanel-activity" className="mt-0">
+        {tab === "activity" && (
+          <div data-testid="horse-profile-tabpanel-activity" className="mt-0">
           <Card>
             <CardContent className="p-4 text-sm text-muted-foreground">
               <p>Activity log shows audit history of this horse — moves, package changes, health events, etc.</p>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+          </div>
+        )}
+      </div>
     </DetailScaffold>
   );
 }

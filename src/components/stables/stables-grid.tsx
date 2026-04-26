@@ -2,10 +2,10 @@
 
 import type { ColDef, GridApi } from "ag-grid-community";
 import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { useIdParam } from "@/components/shell/detail-sheet";
 import { type ActionItem, FeatureActionsMenu } from "@/components/shell/feature-actions-menu";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { FeatureToolbar } from "@/components/shell/feature-toolbar";
@@ -13,7 +13,6 @@ import { GridFilterButton } from "@/components/shell/grid-filter-button";
 import { GridRefreshButton } from "@/components/shell/grid-refresh-button";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
-import { StableSheetShell } from "@/components/stables/stable-sheet-shell";
 import { useSession } from "@/lib/auth/current";
 import { useDataset } from "@/lib/mock/store";
 
@@ -32,10 +31,10 @@ interface Row {
 export function StablesGrid() {
   const dataset = useDataset();
   const session = useSession();
+  const router = useRouter();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [search, setSearch] = useState("");
   const [active, setActive] = useState<Set<string>>(new Set());
-  const [, setSelectedId] = useIdParam();
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -161,12 +160,10 @@ export function StablesGrid() {
           columnDefs={columnDefs}
           quickFilterText={search}
           defaultSortField="block"
-          onRowClick={(row) => setSelectedId(row.id)}
+          onRowClick={(row) => router.push(`/stables/${row.id}`)}
           onApiReady={setGridApi}
         />
       </div>
-
-      <StableSheetShell />
     </div>
   );
 }

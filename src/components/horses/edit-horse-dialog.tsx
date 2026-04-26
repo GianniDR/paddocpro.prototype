@@ -26,9 +26,21 @@ import { now } from "@/lib/mock/clock";
 import { mutate, useDataset } from "@/lib/mock/store";
 import type { Horse } from "@/types";
 
-export function EditHorseDialog({ horse }: { horse: Horse }) {
+interface EditHorseDialogProps {
+  horse: Horse;
+  /** Controlled open state. When provided, the trigger is not rendered. */
+  open?: boolean;
+  onOpenChange?: (next: boolean) => void;
+}
+
+export function EditHorseDialog({ horse, open: openProp, onOpenChange }: EditHorseDialogProps) {
   const dataset = useDataset();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = (v: boolean) => {
+    if (onOpenChange) onOpenChange(v);
+    if (openProp === undefined) setInternalOpen(v);
+  };
   const [stableName, setStableName] = useState(horse.stableName);
   const [registeredName, setRegisteredName] = useState(horse.registeredName);
   const [colour, setColour] = useState(horse.colour);
@@ -59,13 +71,15 @@ export function EditHorseDialog({ horse }: { horse: Horse }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <Button variant="outline" size="sm" data-testid="horse-profile-toolbar-edit">
-            <Edit className="h-3.5 w-3.5" /> Edit
-          </Button>
-        }
-      />
+      {openProp === undefined && (
+        <DialogTrigger
+          render={
+            <Button variant="outline" size="sm" data-testid="horse-profile-toolbar-edit">
+              <Edit className="h-3.5 w-3.5" /> Edit
+            </Button>
+          }
+        />
+      )}
       <DialogContent className="max-w-lg" data-testid="dialog-edit-horse">
         <DialogHeader>
           <DialogTitle>Edit {horse.stableName}</DialogTitle>

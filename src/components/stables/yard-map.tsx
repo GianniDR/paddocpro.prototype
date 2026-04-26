@@ -1,8 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
-import { useIdParam } from "@/components/shell/detail-sheet";
 import { useSession } from "@/lib/auth/current";
 import { useDataset } from "@/lib/mock/store";
 import { cn } from "@/lib/utils";
@@ -15,8 +15,8 @@ const PAD = 24;
 export function YardMap() {
   const dataset = useDataset();
   const session = useSession();
+  const router = useRouter();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
-  const [, setSelectedId] = useIdParam();
 
   const stables = useMemo(
     () => dataset.stables.filter((s) => s.tenantId === tenantId),
@@ -110,7 +110,7 @@ export function YardMap() {
             return (
               <g
                 key={stable.id}
-                onClick={() => setSelectedId(stable.id)}
+                onClick={() => router.push(`/stables/${stable.id}`)}
                 style={{ cursor: "pointer" }}
                 data-testid={`yard-map-stable-${stable.id}`}
                 aria-label={`${stable.block} ${stable.number} — ${stable.status}${horse ? ` · ${horse.stableName}` : ""}`}
@@ -119,7 +119,7 @@ export function YardMap() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    setSelectedId(stable.id);
+                    router.push(`/stables/${stable.id}`);
                   }
                 }}
                 className="hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary"

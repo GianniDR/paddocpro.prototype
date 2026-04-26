@@ -21,12 +21,30 @@ import { newId } from "@/lib/mock/id-prefixes";
 import { mutate, useDataset } from "@/lib/mock/store";
 import type { HealthStatus } from "@/types";
 
-export function MarkIsolatingDialog({ horseId, horseName }: { horseId: string; horseName: string }) {
+interface MarkIsolatingDialogProps {
+  horseId: string;
+  horseName: string;
+  /** Controlled open state. When provided, the trigger is not rendered. */
+  open?: boolean;
+  onOpenChange?: (next: boolean) => void;
+}
+
+export function MarkIsolatingDialog({
+  horseId,
+  horseName,
+  open: openProp,
+  onOpenChange,
+}: MarkIsolatingDialogProps) {
   const dataset = useDataset();
   const horse = dataset.horses.find((h) => h.id === horseId);
   const isIsolating = horse?.healthStatus === "isolating";
 
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = (v: boolean) => {
+    if (onOpenChange) onOpenChange(v);
+    if (openProp === undefined) setInternalOpen(v);
+  };
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -81,17 +99,19 @@ export function MarkIsolatingDialog({ horseId, horseName }: { horseId: string; h
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <Button
-            variant="outline"
-            size="sm"
-            data-testid="horse-profile-toolbar-mark-isolating"
-          >
-            <Shield className="h-3.5 w-3.5" /> {isIsolating ? "End isolation" : "Mark isolating"}
-          </Button>
-        }
-      />
+      {openProp === undefined && (
+        <DialogTrigger
+          render={
+            <Button
+              variant="outline"
+              size="sm"
+              data-testid="horse-profile-toolbar-mark-isolating"
+            >
+              <Shield className="h-3.5 w-3.5" /> {isIsolating ? "End isolation" : "Mark isolating"}
+            </Button>
+          }
+        />
+      )}
       <DialogContent className="max-w-md" data-testid="dialog-mark-isolating">
         <DialogHeader>
           <DialogTitle>
