@@ -1,16 +1,19 @@
 "use client";
 
-import type { ColDef } from "ag-grid-community";
+import type { ColDef, GridApi } from "ag-grid-community";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
+import { type ActionItem, FeatureActionsMenu } from "@/components/shell/feature-actions-menu";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { FeatureToolbar } from "@/components/shell/feature-toolbar";
 import { GenericDetail } from "@/components/shell/generic-detail";
+import { GridFilterButton } from "@/components/shell/grid-filter-button";
+import { GridRefreshButton } from "@/components/shell/grid-refresh-button";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
-import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth/current";
 import { formatGbp } from "@/lib/format";
 import { useDataset } from "@/lib/mock/store";
@@ -130,6 +133,24 @@ export function FeedGrid() {
 
   const sel = dataset.inventory.find((i) => i.id === selectedId);
   const supp = sel ? dataset.suppliers.find((s) => s.id === sel.preferredSupplierId) : null;
+  const [gridApi, setGridApi] = useState<GridApi<Row> | null>(null);
+
+  const actions: ActionItem[] = [
+    {
+      label: "Add item",
+      Icon: Plus,
+      onClick: () => toast("Add item — coming soon"),
+      testId: "feed-supplies-grid-cta",
+    },
+    {
+      label: "Export CSV",
+      onClick: () => {
+        gridApi?.exportDataAsCsv({ fileName: "feed-supplies.csv" });
+        toast.success("CSV exported");
+      },
+      testId: "feed-supplies-grid-export",
+    },
+  ];
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -139,9 +160,9 @@ export function FeedGrid() {
           onSearchChange={setSearch}
           placeholder="Search items, categories, suppliers…"
         >
-          <Button size="sm" data-testid="feed-supplies-grid-cta">
-            <Plus size={14} /> Add item
-          </Button>
+          <GridRefreshButton api={gridApi} />
+          <GridFilterButton api={gridApi} />
+          <FeatureActionsMenu items={actions} />
         </FeatureToolbar>
       </div>
 
@@ -157,6 +178,7 @@ export function FeedGrid() {
           defaultSortField="name"
           onRowClick={(r) => setSelectedId(r.id)}
           quickFilterText={search}
+          onApiReady={setGridApi}
         />
       </div>
 

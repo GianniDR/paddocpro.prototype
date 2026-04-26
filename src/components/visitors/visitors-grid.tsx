@@ -1,16 +1,19 @@
 "use client";
 
-import type { ColDef } from "ag-grid-community";
-import { Flame } from "lucide-react";
+import type { ColDef, GridApi } from "ag-grid-community";
+import { LogIn } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
+import { type ActionItem, FeatureActionsMenu } from "@/components/shell/feature-actions-menu";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { FeatureToolbar } from "@/components/shell/feature-toolbar";
 import { GenericDetail } from "@/components/shell/generic-detail";
+import { GridFilterButton } from "@/components/shell/grid-filter-button";
+import { GridRefreshButton } from "@/components/shell/grid-refresh-button";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
-import { Button } from "@/components/ui/button";
 import { SignInVisitorDialog } from "@/components/visitors/sign-in-dialog";
 import { useSession } from "@/lib/auth/current";
 import { formatDateTime } from "@/lib/format";
@@ -118,6 +121,24 @@ export function VisitorsGrid() {
   );
 
   const sel = dataset.visitors.find((v) => v.id === selectedId);
+  const [gridApi, setGridApi] = useState<GridApi<Row> | null>(null);
+
+  const actions: ActionItem[] = [
+    {
+      label: "Sign in visitor",
+      Icon: LogIn,
+      onClick: () => toast("Sign in visitor — coming soon"),
+      testId: "visitors-signin-trigger",
+    },
+    {
+      label: "Export CSV",
+      onClick: () => {
+        gridApi?.exportDataAsCsv({ fileName: "visitors.csv" });
+        toast.success("CSV exported");
+      },
+      testId: "visitors-grid-export",
+    },
+  ];
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -127,10 +148,9 @@ export function VisitorsGrid() {
           onSearchChange={setSearch}
           placeholder="Search visitors, purpose, vehicle…"
         >
-          <Button size="sm" variant="outline" data-testid="visitors-grid-fire">
-            <Flame size={14} /> Fire roll-call
-          </Button>
-          <SignInVisitorDialog />
+          <GridRefreshButton api={gridApi} />
+          <GridFilterButton api={gridApi} />
+          <FeatureActionsMenu items={actions} />
         </FeatureToolbar>
       </div>
 
@@ -147,6 +167,7 @@ export function VisitorsGrid() {
           defaultSortField="arrivedAt"
           defaultSortDirection="desc"
           onRowClick={(r) => setSelectedId(r.id)}
+          onApiReady={setGridApi}
         />
       </div>
 
@@ -177,6 +198,8 @@ export function VisitorsGrid() {
           />
         )}
       </DetailSheet>
+
+      <SignInVisitorDialog />
     </div>
   );
 }

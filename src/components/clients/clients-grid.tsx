@@ -1,16 +1,19 @@
 "use client";
 
-import type { ColDef } from "ag-grid-community";
+import type { ColDef, GridApi } from "ag-grid-community";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { ClientDetail } from "@/components/clients/client-detail";
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
+import { type ActionItem, FeatureActionsMenu } from "@/components/shell/feature-actions-menu";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { FeatureToolbar } from "@/components/shell/feature-toolbar";
+import { GridFilterButton } from "@/components/shell/grid-filter-button";
+import { GridRefreshButton } from "@/components/shell/grid-refresh-button";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
-import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth/current";
 import { formatDate, formatGbp } from "@/lib/format";
 import { now } from "@/lib/mock/clock";
@@ -166,6 +169,25 @@ export function ClientsGrid() {
     [],
   );
 
+  const [gridApi, setGridApi] = useState<GridApi<Row> | null>(null);
+
+  const actions: ActionItem[] = [
+    {
+      label: "Add client",
+      Icon: Plus,
+      onClick: () => toast("Add client — coming soon"),
+      testId: "clients-grid-cta",
+    },
+    {
+      label: "Export CSV",
+      onClick: () => {
+        gridApi?.exportDataAsCsv({ fileName: "clients.csv" });
+        toast.success("CSV exported");
+      },
+      testId: "clients-grid-export",
+    },
+  ];
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="px-4 pt-3 flex items-center gap-2">
@@ -174,9 +196,9 @@ export function ClientsGrid() {
           onSearchChange={setSearch}
           placeholder="Search clients, emails, cities…"
         >
-          <Button size="sm" data-testid="clients-grid-cta">
-            <Plus size={14} /> Add client
-          </Button>
+          <GridRefreshButton api={gridApi} />
+          <GridFilterButton api={gridApi} />
+          <FeatureActionsMenu items={actions} />
         </FeatureToolbar>
       </div>
 
@@ -192,6 +214,7 @@ export function ClientsGrid() {
           quickFilterText={search}
           defaultSortField="fullName"
           onRowClick={(row) => setSelectedId(row.id)}
+          onApiReady={setGridApi}
         />
       </div>
 

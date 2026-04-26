@@ -61,13 +61,21 @@ const DEFAULT_VALUES: HorseFormValues = {
 
 interface AddHorseModalProps {
   trigger?: React.ReactElement;
+  /** Controlled open state. When provided, the component is fully controlled. */
+  open?: boolean;
+  onOpenChange?: (next: boolean) => void;
 }
 
-export function AddHorseModal({ trigger }: AddHorseModalProps) {
+export function AddHorseModal({ trigger, open: openProp, onOpenChange }: AddHorseModalProps) {
   const dataset = useDataset();
   const session = useSession();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = (v: boolean) => {
+    if (onOpenChange) onOpenChange(v);
+    if (openProp === undefined) setInternalOpen(v);
+  };
   const [submitting, setSubmitting] = useState(false);
 
   const {
@@ -167,15 +175,17 @@ export function AddHorseModal({ trigger }: AddHorseModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => (v ? setOpen(true) : close())}>
-      <DialogTrigger
-        render={
-          trigger ?? (
-            <Button size="sm" data-testid="horses-grid-add">
-              <Plus size={14} /> Add horse
-            </Button>
-          )
-        }
-      />
+      {openProp === undefined && (
+        <DialogTrigger
+          render={
+            trigger ?? (
+              <Button size="sm" data-testid="horses-grid-add">
+                <Plus size={14} /> Add horse
+              </Button>
+            )
+          }
+        />
+      )}
       <DialogContent className="max-w-lg" data-testid="dialog-add-horse">
         <DialogHeader>
           <DialogTitle>Add horse</DialogTitle>

@@ -1,14 +1,19 @@
 "use client";
 
-import type { ColDef } from "ag-grid-community";
+import type { ColDef, GridApi } from "ag-grid-community";
+import { Receipt } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { RecordPaymentDialog } from "@/components/finance/record-payment-dialog";
 import { RunMonthlyInvoicingDialog } from "@/components/finance/run-monthly-invoicing-dialog";
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
+import { type ActionItem, FeatureActionsMenu } from "@/components/shell/feature-actions-menu";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { FeatureToolbar } from "@/components/shell/feature-toolbar";
 import { GenericDetail } from "@/components/shell/generic-detail";
+import { GridFilterButton } from "@/components/shell/grid-filter-button";
+import { GridRefreshButton } from "@/components/shell/grid-refresh-button";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
 import { useSession } from "@/lib/auth/current";
@@ -156,6 +161,26 @@ export function FinanceGrid() {
   const clientUser = client ? dataset.users.find((u) => u.id === client.userAccountId) : null;
   const payments = sel ? dataset.payments.filter((p) => p.invoiceId === sel.id) : [];
 
+  const [gridApi, setGridApi] = useState<GridApi<Row> | null>(null);
+  const [runOpen, setRunOpen] = useState(false);
+
+  const actions: ActionItem[] = [
+    {
+      label: "Run monthly invoicing",
+      Icon: Receipt,
+      onClick: () => setRunOpen(true),
+      testId: "finance-grid-run-monthly",
+    },
+    {
+      label: "Export CSV",
+      onClick: () => {
+        gridApi?.exportDataAsCsv({ fileName: "finance.csv" });
+        toast.success("CSV exported");
+      },
+      testId: "finance-grid-export",
+    },
+  ];
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="px-4 pt-3 flex items-center gap-2">
@@ -164,7 +189,9 @@ export function FinanceGrid() {
           onSearchChange={setSearch}
           placeholder="Search invoices, clients…"
         >
-          <RunMonthlyInvoicingDialog />
+          <GridRefreshButton api={gridApi} />
+          <GridFilterButton api={gridApi} />
+          <FeatureActionsMenu items={actions} />
         </FeatureToolbar>
       </div>
 
@@ -181,8 +208,11 @@ export function FinanceGrid() {
           defaultSortField="issuedAt"
           defaultSortDirection="desc"
           onRowClick={(row) => setSelectedId(row.id)}
+          onApiReady={setGridApi}
         />
       </div>
+
+      <RunMonthlyInvoicingDialog open={runOpen} onOpenChange={setRunOpen} />
 
       <DetailSheet
         open={!!sel}

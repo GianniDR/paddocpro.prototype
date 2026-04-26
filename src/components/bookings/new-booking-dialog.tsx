@@ -38,11 +38,21 @@ const TYPES: { value: BookingType; label: string; resourceKinds: string[] }[] = 
   { value: "dentist_appt", label: "Dentist appointment", resourceKinds: ["dentist"] },
 ];
 
-export function NewBookingDialog() {
+interface NewBookingDialogProps {
+  open?: boolean;
+  onOpenChange?: (next: boolean) => void;
+}
+
+export function NewBookingDialog({ open: openProp, onOpenChange }: NewBookingDialogProps = {}) {
   const dataset = useDataset();
   const session = useSession();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = (v: boolean) => {
+    if (onOpenChange) onOpenChange(v);
+    if (openProp === undefined) setInternalOpen(v);
+  };
   const [submitting, setSubmitting] = useState(false);
 
   const [type, setType] = useState<BookingType>("arena_slot");
@@ -135,13 +145,15 @@ export function NewBookingDialog() {
         if (!v) reset();
       }}
     >
-      <DialogTrigger
-        render={
-          <Button size="sm" data-testid="bookings-new-trigger">
-            <Plus className="h-3.5 w-3.5" /> New booking
-          </Button>
-        }
-      />
+      {openProp === undefined && (
+        <DialogTrigger
+          render={
+            <Button size="sm" data-testid="bookings-new-trigger">
+              <Plus className="h-3.5 w-3.5" /> New booking
+            </Button>
+          }
+        />
+      )}
       <DialogContent className="max-w-lg" data-testid="dialog-new-booking">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

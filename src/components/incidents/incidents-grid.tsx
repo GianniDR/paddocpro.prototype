@@ -1,17 +1,20 @@
 "use client";
 
-import type { ColDef } from "ag-grid-community";
+import type { ColDef, GridApi } from "ag-grid-community";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { IncidentWorkflowStepper } from "@/components/incidents/incident-workflow";
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
+import { type ActionItem, FeatureActionsMenu } from "@/components/shell/feature-actions-menu";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { FeatureToolbar } from "@/components/shell/feature-toolbar";
 import { GenericDetail } from "@/components/shell/generic-detail";
+import { GridFilterButton } from "@/components/shell/grid-filter-button";
+import { GridRefreshButton } from "@/components/shell/grid-refresh-button";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
-import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth/current";
 import { formatDateTime } from "@/lib/format";
 import { useDataset } from "@/lib/mock/store";
@@ -121,6 +124,24 @@ export function IncidentsGrid() {
 
   const sel = dataset.incidents.find((i) => i.id === selectedId);
   const horse = sel?.linkedHorseId ? dataset.horses.find((h) => h.id === sel.linkedHorseId) : null;
+  const [gridApi, setGridApi] = useState<GridApi<Row> | null>(null);
+
+  const actions: ActionItem[] = [
+    {
+      label: "Log incident",
+      Icon: Plus,
+      onClick: () => toast("Log incident — coming soon"),
+      testId: "incidents-grid-cta",
+    },
+    {
+      label: "Export CSV",
+      onClick: () => {
+        gridApi?.exportDataAsCsv({ fileName: "incidents.csv" });
+        toast.success("CSV exported");
+      },
+      testId: "incidents-grid-export",
+    },
+  ];
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -130,9 +151,9 @@ export function IncidentsGrid() {
           onSearchChange={setSearch}
           placeholder="Search incidents, summaries, horses…"
         >
-          <Button size="sm" data-testid="incidents-grid-cta">
-            <Plus size={14} /> Log incident
-          </Button>
+          <GridRefreshButton api={gridApi} />
+          <GridFilterButton api={gridApi} />
+          <FeatureActionsMenu items={actions} />
         </FeatureToolbar>
       </div>
 
@@ -149,6 +170,7 @@ export function IncidentsGrid() {
           defaultSortField="occurredAt"
           defaultSortDirection="desc"
           onRowClick={(r) => setSelectedId(r.id)}
+          onApiReady={setGridApi}
         />
       </div>
 

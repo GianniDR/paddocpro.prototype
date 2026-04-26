@@ -1,14 +1,19 @@
 "use client";
 
-import type { ColDef } from "ag-grid-community";
+import type { ColDef, GridApi } from "ag-grid-community";
+import { Upload } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { SignaturePadDialog } from "@/components/documents/signature-pad";
 import { UploadDocumentDialog } from "@/components/documents/upload-dialog";
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
+import { type ActionItem, FeatureActionsMenu } from "@/components/shell/feature-actions-menu";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { FeatureToolbar } from "@/components/shell/feature-toolbar";
 import { GenericDetail } from "@/components/shell/generic-detail";
+import { GridFilterButton } from "@/components/shell/grid-filter-button";
+import { GridRefreshButton } from "@/components/shell/grid-refresh-button";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
 import { useSession } from "@/lib/auth/current";
@@ -137,6 +142,24 @@ export function DocumentsGrid() {
   );
 
   const sel = dataset.documents.find((d) => d.id === selectedId);
+  const [gridApi, setGridApi] = useState<GridApi<Row> | null>(null);
+
+  const actions: ActionItem[] = [
+    {
+      label: "Upload document",
+      Icon: Upload,
+      onClick: () => toast("Upload document — coming soon"),
+      testId: "documents-grid-cta",
+    },
+    {
+      label: "Export CSV",
+      onClick: () => {
+        gridApi?.exportDataAsCsv({ fileName: "documents.csv" });
+        toast.success("CSV exported");
+      },
+      testId: "documents-grid-export",
+    },
+  ];
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -146,8 +169,9 @@ export function DocumentsGrid() {
           onSearchChange={setSearch}
           placeholder="Search documents, categories, linked entities…"
         >
-          <SignaturePadDialog />
-          <UploadDocumentDialog />
+          <GridRefreshButton api={gridApi} />
+          <GridFilterButton api={gridApi} />
+          <FeatureActionsMenu items={actions} />
         </FeatureToolbar>
       </div>
 
@@ -164,8 +188,12 @@ export function DocumentsGrid() {
           defaultSortDirection="desc"
           onRowClick={(r) => setSelectedId(r.id)}
           quickFilterText={search}
+          onApiReady={setGridApi}
         />
       </div>
+
+      <SignaturePadDialog />
+      <UploadDocumentDialog />
 
       <DetailSheet
         open={!!sel}

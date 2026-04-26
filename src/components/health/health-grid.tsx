@@ -1,12 +1,17 @@
 "use client";
 
-import type { ColDef } from "ag-grid-community";
+import type { ColDef, GridApi } from "ag-grid-community";
+import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
+import { type ActionItem, FeatureActionsMenu } from "@/components/shell/feature-actions-menu";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { FeatureToolbar } from "@/components/shell/feature-toolbar";
 import { GenericDetail } from "@/components/shell/generic-detail";
+import { GridFilterButton } from "@/components/shell/grid-filter-button";
+import { GridRefreshButton } from "@/components/shell/grid-refresh-button";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
 import { useSession } from "@/lib/auth/current";
@@ -126,6 +131,24 @@ export function HealthGrid() {
 
   const sel = dataset.healthEvents.find((e) => e.id === selectedId);
   const horse = sel ? dataset.horses.find((h) => h.id === sel.horseId) : null;
+  const [gridApi, setGridApi] = useState<GridApi<Row> | null>(null);
+
+  const actions: ActionItem[] = [
+    {
+      label: "Log event",
+      Icon: Plus,
+      onClick: () => toast("Log event — coming soon"),
+      testId: "health-grid-cta",
+    },
+    {
+      label: "Export CSV",
+      onClick: () => {
+        gridApi?.exportDataAsCsv({ fileName: "health.csv" });
+        toast.success("CSV exported");
+      },
+      testId: "health-grid-export",
+    },
+  ];
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -134,7 +157,11 @@ export function HealthGrid() {
           search={search}
           onSearchChange={setSearch}
           placeholder="Search events, horses, practitioners…"
-        />
+        >
+          <GridRefreshButton api={gridApi} />
+          <GridFilterButton api={gridApi} />
+          <FeatureActionsMenu items={actions} />
+        </FeatureToolbar>
       </div>
 
       <div className="px-4 pt-3 pb-0 flex flex-wrap" data-testid="health-grid-chip-row">
@@ -150,6 +177,7 @@ export function HealthGrid() {
           defaultSortDirection="desc"
           onRowClick={(row) => setSelectedId(row.id)}
           quickFilterText={search}
+          onApiReady={setGridApi}
         />
       </div>
 

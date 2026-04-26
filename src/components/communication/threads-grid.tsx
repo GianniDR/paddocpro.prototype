@@ -1,11 +1,16 @@
 "use client";
 
-import type { ColDef } from "ag-grid-community";
+import type { ColDef, GridApi } from "ag-grid-community";
+import { Megaphone } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { BroadcastDialog } from "@/components/communication/broadcast-dialog";
+import { type ActionItem, FeatureActionsMenu } from "@/components/shell/feature-actions-menu";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { FeatureToolbar } from "@/components/shell/feature-toolbar";
+import { GridFilterButton } from "@/components/shell/grid-filter-button";
+import { GridRefreshButton } from "@/components/shell/grid-refresh-button";
 import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
 import { useSession } from "@/lib/auth/current";
 import { formatDateTime } from "@/lib/format";
@@ -107,6 +112,26 @@ export function ThreadsGrid() {
     [],
   );
 
+  const [gridApi, setGridApi] = useState<GridApi<Row> | null>(null);
+  const [bcastOpen, setBcastOpen] = useState(false);
+
+  const actions: ActionItem[] = [
+    {
+      label: "New broadcast",
+      Icon: Megaphone,
+      onClick: () => setBcastOpen(true),
+      testId: "comms-broadcast-trigger",
+    },
+    {
+      label: "Export CSV",
+      onClick: () => {
+        gridApi?.exportDataAsCsv({ fileName: "threads.csv" });
+        toast.success("CSV exported");
+      },
+      testId: "threads-grid-export",
+    },
+  ];
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="px-4 pt-3 flex items-center gap-2">
@@ -115,7 +140,9 @@ export function ThreadsGrid() {
           onSearchChange={setSearch}
           placeholder="Search threads, subjects…"
         >
-          <BroadcastDialog />
+          <GridRefreshButton api={gridApi} />
+          <GridFilterButton api={gridApi} />
+          <FeatureActionsMenu items={actions} />
         </FeatureToolbar>
       </div>
 
@@ -131,8 +158,11 @@ export function ThreadsGrid() {
           quickFilterText={search}
           defaultSortField="lastActivity"
           defaultSortDirection="desc"
+          onApiReady={setGridApi}
         />
       </div>
+
+      <BroadcastDialog open={bcastOpen} onOpenChange={setBcastOpen} />
     </div>
   );
 }

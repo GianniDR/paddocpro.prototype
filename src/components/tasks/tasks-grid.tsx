@@ -1,14 +1,17 @@
 "use client";
 
-import type { ColDef } from "ag-grid-community";
-import { Check, X } from "lucide-react";
+import type { ColDef, GridApi } from "ag-grid-community";
+import { Check, Plus, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
+import { type ActionItem, FeatureActionsMenu } from "@/components/shell/feature-actions-menu";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { FeatureToolbar } from "@/components/shell/feature-toolbar";
 import { GenericDetail } from "@/components/shell/generic-detail";
+import { GridFilterButton } from "@/components/shell/grid-filter-button";
+import { GridRefreshButton } from "@/components/shell/grid-refresh-button";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
 import { Button } from "@/components/ui/button";
@@ -187,14 +190,13 @@ export function TasksGrid() {
       },
       {
         colId: "__row-action",
-        headerName: "",
-        width: 110,
+        headerName: "Action",
+        width: 130,
         sortable: false,
         filter: false,
         cellRenderer: (p: { data?: Row }) => {
           if (!p.data) return null;
-          if (p.data.status === "completed")
-            return <span className="text-xs text-emerald-600">✓ Done</span>;
+          if (p.data.status === "completed") return null;
           return (
             <button
               type="button"
@@ -203,7 +205,7 @@ export function TasksGrid() {
                 void completeOne(p.data!.id);
               }}
               data-testid={`tasks-grid-complete-${p.data.id}`}
-              className="inline-flex items-center gap-1 rounded-md border bg-card px-2 py-1 text-xs hover:bg-accent transition"
+              className="inline-flex items-center gap-1 rounded-md border border-[#bdccdb] bg-white px-2 py-1 text-xs hover:bg-[#f2f5f8] transition"
             >
               <Check className="h-3 w-3" /> Complete
             </button>
@@ -218,6 +220,24 @@ export function TasksGrid() {
 
   const sel = dataset.tasks.find((t) => t.id === selectedId);
   const horse = sel?.horseId ? dataset.horses.find((h) => h.id === sel.horseId) : null;
+  const [gridApi, setGridApi] = useState<GridApi<Row> | null>(null);
+
+  const actions: ActionItem[] = [
+    {
+      label: "Add task",
+      Icon: Plus,
+      onClick: () => toast("Add task — coming soon"),
+      testId: "tasks-grid-cta",
+    },
+    {
+      label: "Export CSV",
+      onClick: () => {
+        gridApi?.exportDataAsCsv({ fileName: "tasks.csv" });
+        toast.success("CSV exported");
+      },
+      testId: "tasks-grid-export",
+    },
+  ];
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -226,7 +246,11 @@ export function TasksGrid() {
           search={search}
           onSearchChange={setSearch}
           placeholder="Search tasks, assignees, notes…"
-        />
+        >
+          <GridRefreshButton api={gridApi} />
+          <GridFilterButton api={gridApi} />
+          <FeatureActionsMenu items={actions} />
+        </FeatureToolbar>
       </div>
 
       <div className="px-4 pt-3 pb-0 flex flex-wrap" data-testid="tasks-grid-chip-row">
@@ -267,6 +291,7 @@ export function TasksGrid() {
           defaultSortField="dueAt"
           onRowClick={(row) => setSelectedId(row.id)}
           onSelectionChanged={(rows) => setSelectedIds(rows.map((r) => r.id))}
+          onApiReady={setGridApi}
         />
       </div>
 

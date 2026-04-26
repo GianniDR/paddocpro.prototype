@@ -32,6 +32,8 @@ interface FeatureGridProps<T extends { id: string }> {
   emptyState?: React.ReactNode;
   className?: string;
   rowHeight?: number;
+  /** Callback fired once the grid is ready, with the AG Grid API. Use to wire external buttons (e.g. Filter, Refresh). */
+  onApiReady?: (api: GridApi<T>) => void;
 }
 
 export function FeatureGrid<T extends { id: string }>({
@@ -46,6 +48,7 @@ export function FeatureGrid<T extends { id: string }>({
   emptyState,
   className,
   rowHeight = 44,
+  onApiReady,
 }: FeatureGridProps<T>) {
   const apiRef = useRef<GridApi<T> | null>(null);
 
@@ -58,8 +61,9 @@ export function FeatureGrid<T extends { id: string }>({
           defaultState: { sort: null },
         });
       }
+      onApiReady?.(e.api);
     },
-    [defaultSortField, defaultSortDirection],
+    [defaultSortField, defaultSortDirection, onApiReady],
   );
 
   const handleCellClicked = useCallback(

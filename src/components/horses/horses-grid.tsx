@@ -1,12 +1,17 @@
 "use client";
 
-import type { ColDef } from "ag-grid-community";
+import type { ColDef, GridApi } from "ag-grid-community";
+import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { AddHorseModal } from "@/components/horses/add-horse-modal";
+import { type ActionItem, FeatureActionsMenu } from "@/components/shell/feature-actions-menu";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { FeatureToolbar } from "@/components/shell/feature-toolbar";
+import { GridFilterButton } from "@/components/shell/grid-filter-button";
+import { GridRefreshButton } from "@/components/shell/grid-refresh-button";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
 import { useSession } from "@/lib/auth/current";
@@ -163,6 +168,25 @@ export function HorsesGrid() {
   );
 
   const handleRowClick = (row: Row) => router.push(`/horses/${row.id}`);
+  const [gridApi, setGridApi] = useState<GridApi<Row> | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+
+  const actions: ActionItem[] = [
+    {
+      label: "Add horse",
+      Icon: Plus,
+      onClick: () => setAddOpen(true),
+      testId: "horses-grid-add",
+    },
+    {
+      label: "Export CSV",
+      onClick: () => {
+        gridApi?.exportDataAsCsv({ fileName: "horses.csv" });
+        toast.success("CSV exported");
+      },
+      testId: "horses-grid-export",
+    },
+  ];
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -172,7 +196,9 @@ export function HorsesGrid() {
           onSearchChange={setSearch}
           placeholder="Search horses, owners, stables…"
         >
-          <AddHorseModal />
+          <GridRefreshButton api={gridApi} />
+          <GridFilterButton api={gridApi} />
+          <FeatureActionsMenu items={actions} />
         </FeatureToolbar>
       </div>
 
@@ -188,8 +214,11 @@ export function HorsesGrid() {
           onRowClick={handleRowClick}
           quickFilterText={search}
           defaultSortField="stableName"
+          onApiReady={setGridApi}
         />
       </div>
+
+      <AddHorseModal open={addOpen} onOpenChange={setAddOpen} />
     </div>
   );
 }

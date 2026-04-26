@@ -36,11 +36,24 @@ const MONTHS = [
   "December",
 ];
 
-export function RunMonthlyInvoicingDialog() {
+interface RunMonthlyInvoicingDialogProps {
+  open?: boolean;
+  onOpenChange?: (next: boolean) => void;
+}
+
+export function RunMonthlyInvoicingDialog({
+  open: openProp,
+  onOpenChange,
+}: RunMonthlyInvoicingDialogProps = {}) {
   const dataset = useDataset();
   const session = useSession();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = (v: boolean) => {
+    if (onOpenChange) onOpenChange(v);
+    if (openProp === undefined) setInternalOpen(v);
+  };
   const [submitting, setSubmitting] = useState(false);
 
   // Compute the invoicing preview: 1 invoice per active livery contract
@@ -131,13 +144,15 @@ export function RunMonthlyInvoicingDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <Button size="sm" data-testid="finance-grid-run-monthly">
-            <Receipt className="h-3.5 w-3.5" /> Run monthly invoicing
-          </Button>
-        }
-      />
+      {openProp === undefined && (
+        <DialogTrigger
+          render={
+            <Button size="sm" data-testid="finance-grid-run-monthly">
+              <Receipt className="h-3.5 w-3.5" /> Run monthly invoicing
+            </Button>
+          }
+        />
+      )}
       <DialogContent className="max-w-2xl" data-testid="dialog-run-monthly-invoicing">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

@@ -39,11 +39,24 @@ const AUDIENCE_LABEL: Record<Audience, string> = {
   diy_livery_clients: "DIY Livery clients",
 };
 
-export function BroadcastDialog() {
+interface BroadcastDialogProps {
+  open?: boolean;
+  onOpenChange?: (next: boolean) => void;
+}
+
+export function BroadcastDialog({
+  open: openProp,
+  onOpenChange,
+}: BroadcastDialogProps = {}) {
   const dataset = useDataset();
   const session = useSession();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = (v: boolean) => {
+    if (onOpenChange) onOpenChange(v);
+    if (openProp === undefined) setInternalOpen(v);
+  };
   const [audience, setAudience] = useState<Audience>("all_clients");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
@@ -138,13 +151,15 @@ export function BroadcastDialog() {
         if (!v) reset();
       }}
     >
-      <DialogTrigger
-        render={
-          <Button size="sm" data-testid="comms-broadcast-trigger">
-            <Megaphone className="h-3.5 w-3.5" /> New broadcast
-          </Button>
-        }
-      />
+      {openProp === undefined && (
+        <DialogTrigger
+          render={
+            <Button size="sm" data-testid="comms-broadcast-trigger">
+              <Megaphone className="h-3.5 w-3.5" /> New broadcast
+            </Button>
+          }
+        />
+      )}
       <DialogContent className="max-w-lg" data-testid="dialog-broadcast">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

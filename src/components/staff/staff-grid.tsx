@@ -1,17 +1,20 @@
 "use client";
 
-import type { ColDef } from "ag-grid-community";
+import type { ColDef, GridApi } from "ag-grid-community";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { DetailSheet, useIdParam } from "@/components/shell/detail-sheet";
+import { type ActionItem, FeatureActionsMenu } from "@/components/shell/feature-actions-menu";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { FeatureToolbar } from "@/components/shell/feature-toolbar";
 import { GenericDetail } from "@/components/shell/generic-detail";
+import { GridFilterButton } from "@/components/shell/grid-filter-button";
+import { GridRefreshButton } from "@/components/shell/grid-refresh-button";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth/current";
 import { formatDate } from "@/lib/format";
 import { useDataset } from "@/lib/mock/store";
@@ -134,6 +137,24 @@ export function StaffGrid() {
 
   const sel = dataset.users.find((u) => u.id === selectedId);
   const certs = sel ? dataset.certs.filter((c) => c.staffUserId === sel.id) : [];
+  const [gridApi, setGridApi] = useState<GridApi<Row> | null>(null);
+
+  const actions: ActionItem[] = [
+    {
+      label: "Add user",
+      Icon: Plus,
+      onClick: () => toast("Add user — coming soon"),
+      testId: "staff-grid-cta",
+    },
+    {
+      label: "Export CSV",
+      onClick: () => {
+        gridApi?.exportDataAsCsv({ fileName: "staff.csv" });
+        toast.success("CSV exported");
+      },
+      testId: "staff-grid-export",
+    },
+  ];
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -143,9 +164,9 @@ export function StaffGrid() {
           onSearchChange={setSearch}
           placeholder="Search staff, roles, emails…"
         >
-          <Button size="sm" data-testid="staff-grid-cta">
-            <Plus size={14} /> Invite staff
-          </Button>
+          <GridRefreshButton api={gridApi} />
+          <GridFilterButton api={gridApi} />
+          <FeatureActionsMenu items={actions} />
         </FeatureToolbar>
       </div>
 
@@ -161,6 +182,7 @@ export function StaffGrid() {
           defaultSortField="fullName"
           onRowClick={(r) => setSelectedId(r.id)}
           quickFilterText={search}
+          onApiReady={setGridApi}
         />
       </div>
 

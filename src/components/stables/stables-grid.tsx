@@ -1,16 +1,19 @@
 "use client";
 
-import type { ColDef } from "ag-grid-community";
+import type { ColDef, GridApi } from "ag-grid-community";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { useIdParam } from "@/components/shell/detail-sheet";
+import { type ActionItem, FeatureActionsMenu } from "@/components/shell/feature-actions-menu";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { FeatureToolbar } from "@/components/shell/feature-toolbar";
+import { GridFilterButton } from "@/components/shell/grid-filter-button";
+import { GridRefreshButton } from "@/components/shell/grid-refresh-button";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
 import { StableSheetShell } from "@/components/stables/stable-sheet-shell";
-import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth/current";
 import { useDataset } from "@/lib/mock/store";
 
@@ -114,6 +117,25 @@ export function StablesGrid() {
     [],
   );
 
+  const [gridApi, setGridApi] = useState<GridApi<Row> | null>(null);
+
+  const actions: ActionItem[] = [
+    {
+      label: "Add stable",
+      Icon: Plus,
+      onClick: () => toast("Add stable — coming soon"),
+      testId: "stables-grid-cta",
+    },
+    {
+      label: "Export CSV",
+      onClick: () => {
+        gridApi?.exportDataAsCsv({ fileName: "stables.csv" });
+        toast.success("CSV exported");
+      },
+      testId: "stables-grid-export",
+    },
+  ];
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="px-4 pt-3 flex items-center gap-2">
@@ -122,9 +144,9 @@ export function StablesGrid() {
           onSearchChange={setSearch}
           placeholder="Search stables, blocks, occupants…"
         >
-          <Button size="sm" data-testid="stables-grid-cta">
-            <Plus size={14} /> Add stable
-          </Button>
+          <GridRefreshButton api={gridApi} />
+          <GridFilterButton api={gridApi} />
+          <FeatureActionsMenu items={actions} />
         </FeatureToolbar>
       </div>
 
@@ -140,6 +162,7 @@ export function StablesGrid() {
           quickFilterText={search}
           defaultSortField="block"
           onRowClick={(row) => setSelectedId(row.id)}
+          onApiReady={setGridApi}
         />
       </div>
 

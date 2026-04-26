@@ -126,7 +126,7 @@ export function PaddyPanel() {
                   key={s}
                   onClick={() => ask(s)}
                   data-testid={`paddy-composer-suggestion-${i}`}
-                  className="block w-full text-left rounded-md border bg-background px-3 py-2 text-sm hover:bg-accent/40 transition"
+                  className="block w-full text-left rounded-md border border-[#bdccdb] bg-white px-3 py-2 text-sm hover:bg-[#f2f5f8] transition"
                 >
                   {s}
                 </button>

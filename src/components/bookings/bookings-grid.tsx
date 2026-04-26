@@ -1,13 +1,18 @@
 "use client";
 
-import type { ColDef } from "ag-grid-community";
+import type { ColDef, GridApi } from "ag-grid-community";
+import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { BookingSheetShell } from "@/components/bookings/booking-sheet-shell";
 import { NewBookingDialog } from "@/components/bookings/new-booking-dialog";
 import { useIdParam } from "@/components/shell/detail-sheet";
+import { type ActionItem, FeatureActionsMenu } from "@/components/shell/feature-actions-menu";
 import { FeatureGrid } from "@/components/shell/feature-grid";
 import { FeatureToolbar } from "@/components/shell/feature-toolbar";
+import { GridFilterButton } from "@/components/shell/grid-filter-button";
+import { GridRefreshButton } from "@/components/shell/grid-refresh-button";
 import { StatusBadge } from "@/components/shell/status-badge";
 import { type StatusChip, StatusChipRow } from "@/components/shell/status-chip-row";
 import { useSession } from "@/lib/auth/current";
@@ -135,6 +140,26 @@ export function BookingsGrid() {
     [],
   );
 
+  const [gridApi, setGridApi] = useState<GridApi<Row> | null>(null);
+  const [newOpen, setNewOpen] = useState(false);
+
+  const actions: ActionItem[] = [
+    {
+      label: "New booking",
+      Icon: Plus,
+      onClick: () => setNewOpen(true),
+      testId: "bookings-new-trigger",
+    },
+    {
+      label: "Export CSV",
+      onClick: () => {
+        gridApi?.exportDataAsCsv({ fileName: "bookings.csv" });
+        toast.success("CSV exported");
+      },
+      testId: "bookings-grid-export",
+    },
+  ];
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="px-4 pt-3 flex items-center gap-2">
@@ -143,7 +168,9 @@ export function BookingsGrid() {
           onSearchChange={setSearch}
           placeholder="Search bookings, horses, clients…"
         >
-          <NewBookingDialog />
+          <GridRefreshButton api={gridApi} />
+          <GridFilterButton api={gridApi} />
+          <FeatureActionsMenu items={actions} />
         </FeatureToolbar>
       </div>
 
@@ -159,10 +186,12 @@ export function BookingsGrid() {
           quickFilterText={search}
           defaultSortField="whenLabel"
           onRowClick={(row) => setSelectedId(row.id)}
+          onApiReady={setGridApi}
         />
       </div>
 
       <BookingSheetShell />
+      <NewBookingDialog open={newOpen} onOpenChange={setNewOpen} />
     </div>
   );
 }
