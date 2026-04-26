@@ -33,7 +33,7 @@ export function StaffGrid() {
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [selectedId, setSelectedId] = useIdParam();
   const [search, setSearch] = useState("");
-  const [active, setActive] = useState<Set<string>>(new Set(["all"]));
+  const [active, setActive] = useState<Set<string>>(new Set());
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -57,7 +57,6 @@ export function StaffGrid() {
 
   const counts = useMemo(
     () => ({
-      all: rows.length,
       active: rows.filter((r) => r.status === "active").length,
       invited: rows.filter((r) => r.status === "invited").length,
       suspended: rows.filter((r) => r.status === "suspended").length,
@@ -68,7 +67,6 @@ export function StaffGrid() {
   );
 
   const chips: StatusChip[] = [
-    { slug: "all", label: "All", count: counts.all },
     { slug: "active", label: "Active", count: counts.active },
     { slug: "invited", label: "Invited", count: counts.invited },
     { slug: "suspended", label: "Suspended", count: counts.suspended },
@@ -77,7 +75,7 @@ export function StaffGrid() {
   ];
 
   const filtered = useMemo(() => {
-    if (active.has("all")) return rows;
+    if (active.size === 0) return rows;
     return rows.filter((r) => {
       if (active.has("active") && r.status === "active") return true;
       if (active.has("invited") && r.status === "invited") return true;
@@ -91,11 +89,8 @@ export function StaffGrid() {
   const toggleChip = (slug: string) => {
     setActive((prev) => {
       const next = new Set(prev);
-      if (slug === "all") return new Set(["all"]);
-      next.delete("all");
       if (next.has(slug)) next.delete(slug);
       else next.add(slug);
-      if (next.size === 0) next.add("all");
       return next;
     });
   };

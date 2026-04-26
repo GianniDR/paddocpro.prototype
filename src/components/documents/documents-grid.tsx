@@ -43,7 +43,7 @@ export function DocumentsGrid() {
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [selectedId, setSelectedId] = useIdParam();
   const [search, setSearch] = useState("");
-  const [active, setActive] = useState<Set<string>>(new Set(["all"]));
+  const [active, setActive] = useState<Set<string>>(new Set());
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -75,7 +75,6 @@ export function DocumentsGrid() {
 
   const counts = useMemo(
     () => ({
-      all: rows.length,
       expired: rows.filter((r) => r.expiryStatus === "expired").length,
       due_30d: rows.filter((r) => r.expiryStatus === "due_30d").length,
       horse: rows.filter((r) => r.entityType === "horse").length,
@@ -86,7 +85,6 @@ export function DocumentsGrid() {
   );
 
   const chips: StatusChip[] = [
-    { slug: "all", label: "All", count: counts.all },
     { slug: "expired", label: "Expired", count: counts.expired },
     { slug: "due_30d", label: "Due ≤30 d", count: counts.due_30d },
     { slug: "horse", label: "Horse", count: counts.horse },
@@ -95,7 +93,7 @@ export function DocumentsGrid() {
   ];
 
   const filtered = useMemo(() => {
-    if (active.has("all")) return rows;
+    if (active.size === 0) return rows;
     return rows.filter((r) => {
       if (active.has("expired") && r.expiryStatus === "expired") return true;
       if (active.has("due_30d") && r.expiryStatus === "due_30d") return true;
@@ -109,11 +107,8 @@ export function DocumentsGrid() {
   const toggleChip = (slug: string) => {
     setActive((prev) => {
       const next = new Set(prev);
-      if (slug === "all") return new Set(["all"]);
-      next.delete("all");
       if (next.has(slug)) next.delete(slug);
       else next.add(slug);
-      if (next.size === 0) next.add("all");
       return next;
     });
   };

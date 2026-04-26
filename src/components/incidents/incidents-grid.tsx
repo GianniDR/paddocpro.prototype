@@ -33,7 +33,7 @@ export function IncidentsGrid() {
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [selectedId, setSelectedId] = useIdParam();
   const [search, setSearch] = useState("");
-  const [active, setActive] = useState<Set<string>>(new Set(["all"]));
+  const [active, setActive] = useState<Set<string>>(new Set());
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -56,7 +56,6 @@ export function IncidentsGrid() {
 
   const counts = useMemo(
     () => ({
-      all: rows.length,
       critical: rows.filter((r) => r.severity === "critical").length,
       serious: rows.filter((r) => r.severity === "serious").length,
       open: rows.filter((r) => r.workflowState !== "closed").length,
@@ -66,7 +65,6 @@ export function IncidentsGrid() {
   );
 
   const chips: StatusChip[] = [
-    { slug: "all", label: "All", count: counts.all },
     { slug: "open", label: "Open", count: counts.open },
     { slug: "critical", label: "Critical", count: counts.critical },
     { slug: "serious", label: "Serious", count: counts.serious },
@@ -74,7 +72,7 @@ export function IncidentsGrid() {
   ];
 
   const filtered = useMemo(() => {
-    if (active.has("all")) return rows;
+    if (active.size === 0) return rows;
     return rows.filter((r) => {
       if (active.has("open") && r.workflowState !== "closed") return true;
       if (active.has("critical") && r.severity === "critical") return true;
@@ -87,11 +85,8 @@ export function IncidentsGrid() {
   const toggleChip = (slug: string) => {
     setActive((prev) => {
       const next = new Set(prev);
-      if (slug === "all") return new Set(["all"]);
-      next.delete("all");
       if (next.has(slug)) next.delete(slug);
       else next.add(slug);
-      if (next.size === 0) next.add("all");
       return next;
     });
   };

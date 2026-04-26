@@ -35,7 +35,7 @@ export function FinanceGrid() {
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [selectedId, setSelectedId] = useIdParam();
   const [search, setSearch] = useState("");
-  const [active, setActive] = useState<Set<string>>(new Set(["all"]));
+  const [active, setActive] = useState<Set<string>>(new Set());
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -62,7 +62,6 @@ export function FinanceGrid() {
   const counts = useMemo(() => {
     const tenantNow = now().getTime();
     return {
-      all: rows.length,
       draft: rows.filter((r) => r.status === "draft").length,
       authorised: rows.filter((r) => r.status === "authorised").length,
       overdue: rows.filter(
@@ -76,7 +75,6 @@ export function FinanceGrid() {
   }, [rows]);
 
   const chips: StatusChip[] = [
-    { slug: "all", label: "All", count: counts.all },
     { slug: "overdue", label: "Overdue", count: counts.overdue },
     { slug: "draft", label: "Draft", count: counts.draft },
     { slug: "authorised", label: "Authorised", count: counts.authorised },
@@ -84,7 +82,7 @@ export function FinanceGrid() {
   ];
 
   const filtered = useMemo(() => {
-    if (active.has("all")) return rows;
+    if (active.size === 0) return rows;
     const tenantNow = now().getTime();
     return rows.filter((r) => {
       if (
@@ -103,11 +101,8 @@ export function FinanceGrid() {
   const toggleChip = (slug: string) => {
     setActive((prev) => {
       const next = new Set(prev);
-      if (slug === "all") return new Set(["all"]);
-      next.delete("all");
       if (next.has(slug)) next.delete(slug);
       else next.add(slug);
-      if (next.size === 0) next.add("all");
       return next;
     });
   };

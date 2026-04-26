@@ -64,7 +64,9 @@ export function FeatureGrid<T extends { id: string }>({
 
   const handleCellClicked = useCallback(
     (e: CellClickedEvent<T>) => {
-      if (e.colDef.colId === "__select") return;
+      // Ignore clicks on AG Grid's auto-injected selection / row-group columns.
+      const colId = e.colDef.colId ?? "";
+      if (colId.startsWith("ag-Grid-AutoColumn") || colId === "ag-Grid-SelectionColumn") return;
       if (e.data && onRowClick) onRowClick(e.data);
     },
     [onRowClick],
@@ -77,28 +79,15 @@ export function FeatureGrid<T extends { id: string }>({
     [onSelectionChanged],
   );
 
-  // Inject a non-pinned checkbox selection column FIRST (riskhub spec: no pinned columns).
+  // rowSelection.checkboxes:true auto-injects the selection column; no manual __select needed.
   const fullColDefs = useMemo<ColDef<T>[]>(
-    () => [
-      {
-        colId: "__select",
-        headerName: "",
-        width: 44,
-        checkboxSelection: true,
-        headerCheckboxSelection: true,
-        sortable: false,
-        filter: false,
-        resizable: false,
-        suppressMovable: true,
-        enableRowGroup: false,
-      },
-      ...columnDefs.map((c) => ({
+    () =>
+      columnDefs.map((c) => ({
         sortable: true,
         filter: "agTextColumnFilter" as const,
         enableRowGroup: true,
         ...c,
       })),
-    ],
     [columnDefs],
   );
 

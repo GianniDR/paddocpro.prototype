@@ -33,7 +33,7 @@ export function FeedGrid() {
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [selectedId, setSelectedId] = useIdParam();
   const [search, setSearch] = useState("");
-  const [active, setActive] = useState<Set<string>>(new Set(["all"]));
+  const [active, setActive] = useState<Set<string>>(new Set());
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -60,7 +60,6 @@ export function FeedGrid() {
 
   const counts = useMemo(
     () => ({
-      all: rows.length,
       low_stock: rows.filter((r) => r.status === "low_stock").length,
       out_of_stock: rows.filter((r) => r.status === "out_of_stock").length,
       feed: rows.filter((r) => r.category === "feed").length,
@@ -71,7 +70,6 @@ export function FeedGrid() {
   );
 
   const chips: StatusChip[] = [
-    { slug: "all", label: "All", count: counts.all },
     { slug: "low_stock", label: "Low stock", count: counts.low_stock },
     { slug: "out_of_stock", label: "Out of stock", count: counts.out_of_stock },
     { slug: "feed", label: "Feed", count: counts.feed },
@@ -80,7 +78,7 @@ export function FeedGrid() {
   ];
 
   const filtered = useMemo(() => {
-    if (active.has("all")) return rows;
+    if (active.size === 0) return rows;
     return rows.filter((r) => {
       if (active.has("low_stock") && r.status === "low_stock") return true;
       if (active.has("out_of_stock") && r.status === "out_of_stock") return true;
@@ -94,11 +92,8 @@ export function FeedGrid() {
   const toggleChip = (slug: string) => {
     setActive((prev) => {
       const next = new Set(prev);
-      if (slug === "all") return new Set(["all"]);
-      next.delete("all");
       if (next.has(slug)) next.delete(slug);
       else next.add(slug);
-      if (next.size === 0) next.add("all");
       return next;
     });
   };

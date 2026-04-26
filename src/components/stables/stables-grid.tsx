@@ -31,7 +31,7 @@ export function StablesGrid() {
   const session = useSession();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [search, setSearch] = useState("");
-  const [active, setActive] = useState<Set<string>>(new Set(["all"]));
+  const [active, setActive] = useState<Set<string>>(new Set());
   const [, setSelectedId] = useIdParam();
 
   const rows: Row[] = useMemo(() => {
@@ -56,7 +56,6 @@ export function StablesGrid() {
 
   const counts = useMemo(
     () => ({
-      all: rows.length,
       occupied: rows.filter((r) => r.status === "occupied").length,
       vacant: rows.filter((r) => r.status === "vacant").length,
       maintenance: rows.filter((r) => r.status === "maintenance").length,
@@ -66,7 +65,6 @@ export function StablesGrid() {
   );
 
   const chips: StatusChip[] = [
-    { slug: "all", label: "All", count: counts.all },
     { slug: "occupied", label: "Occupied", count: counts.occupied },
     { slug: "vacant", label: "Vacant", count: counts.vacant },
     { slug: "maintenance", label: "Maintenance", count: counts.maintenance },
@@ -74,7 +72,7 @@ export function StablesGrid() {
   ];
 
   const filtered = useMemo(() => {
-    if (active.has("all")) return rows;
+    if (active.size === 0) return rows;
     return rows.filter((r) => {
       if (active.has("occupied") && r.status === "occupied") return true;
       if (active.has("vacant") && r.status === "vacant") return true;
@@ -87,11 +85,8 @@ export function StablesGrid() {
   const toggleChip = (slug: string) => {
     setActive((prev) => {
       const next = new Set(prev);
-      if (slug === "all") return new Set(["all"]);
-      next.delete("all");
       if (next.has(slug)) next.delete(slug);
       else next.add(slug);
-      if (next.size === 0) next.add("all");
       return next;
     });
   };

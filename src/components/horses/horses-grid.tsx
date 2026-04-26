@@ -35,7 +35,7 @@ export function HorsesGrid() {
   const router = useRouter();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [search, setSearch] = useState("");
-  const [active, setActive] = useState<Set<string>>(new Set(["all"]));
+  const [active, setActive] = useState<Set<string>>(new Set());
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -78,7 +78,6 @@ export function HorsesGrid() {
   const counts = useMemo(() => {
     const tenantNow = now().getTime();
     return {
-      all: rows.length,
       isolating: rows.filter((r) => r.healthStatus === "isolating").length,
       vet_care: rows.filter((r) => r.healthStatus === "vet_care").length,
       "vacc-overdue": rows.filter((r) => r.vaccStatus === "overdue").length,
@@ -90,7 +89,6 @@ export function HorsesGrid() {
   }, [rows]);
 
   const chips: StatusChip[] = [
-    { slug: "all", label: "All", count: counts.all },
     { slug: "isolating", label: "Isolating", count: counts.isolating },
     { slug: "vet_care", label: "Vet care", count: counts.vet_care },
     { slug: "overdue", label: "Vacc overdue", count: counts["vacc-overdue"] },
@@ -98,7 +96,7 @@ export function HorsesGrid() {
   ];
 
   const filtered = useMemo(() => {
-    if (active.has("all")) return rows;
+    if (active.size === 0) return rows;
     const tenantNow = now().getTime();
     return rows.filter((r) => {
       if (active.has("isolating") && r.healthStatus === "isolating") return true;
@@ -115,11 +113,8 @@ export function HorsesGrid() {
   const toggleChip = (slug: string) => {
     setActive((prev) => {
       const next = new Set(prev);
-      if (slug === "all") return new Set(["all"]);
-      next.delete("all");
       if (next.has(slug)) next.delete(slug);
       else next.add(slug);
-      if (next.size === 0) next.add("all");
       return next;
     });
   };

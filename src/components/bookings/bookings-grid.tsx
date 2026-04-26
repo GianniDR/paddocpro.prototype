@@ -32,7 +32,7 @@ export function BookingsGrid() {
   const session = useSession();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [search, setSearch] = useState("");
-  const [active, setActive] = useState<Set<string>>(new Set(["all"]));
+  const [active, setActive] = useState<Set<string>>(new Set());
   const [, setSelectedId] = useIdParam();
 
   const rows: Row[] = useMemo(() => {
@@ -66,7 +66,6 @@ export function BookingsGrid() {
     })();
     const tomorrow = today + 86_400_000;
     return {
-      all: rows.length,
       today: rows.filter((r) => {
         const s = Date.parse(r.startAt);
         return s >= today && s < tomorrow;
@@ -78,7 +77,6 @@ export function BookingsGrid() {
   }, [rows]);
 
   const chips: StatusChip[] = [
-    { slug: "all", label: "All", count: counts.all },
     { slug: "today", label: "Today", count: counts.today },
     { slug: "tentative", label: "Tentative", count: counts.tentative },
     { slug: "confirmed", label: "Confirmed", count: counts.confirmed },
@@ -86,7 +84,7 @@ export function BookingsGrid() {
   ];
 
   const filtered = useMemo(() => {
-    if (active.has("all")) return rows;
+    if (active.size === 0) return rows;
     const today = (() => {
       const d = now();
       d.setUTCHours(0, 0, 0, 0);
@@ -108,11 +106,8 @@ export function BookingsGrid() {
   const toggleChip = (slug: string) => {
     setActive((prev) => {
       const next = new Set(prev);
-      if (slug === "all") return new Set(["all"]);
-      next.delete("all");
       if (next.has(slug)) next.delete(slug);
       else next.add(slug);
-      if (next.size === 0) next.add("all");
       return next;
     });
   };

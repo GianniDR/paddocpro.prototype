@@ -30,7 +30,7 @@ export function HealthGrid() {
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [selectedId, setSelectedId] = useIdParam();
   const [search, setSearch] = useState("");
-  const [active, setActive] = useState<Set<string>>(new Set(["all"]));
+  const [active, setActive] = useState<Set<string>>(new Set());
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -53,7 +53,6 @@ export function HealthGrid() {
 
   const counts = useMemo(
     () => ({
-      all: rows.length,
       vaccination: rows.filter((r) => r.kind === "vaccination").length,
       worming: rows.filter((r) => r.kind === "worming").length,
       farrier: rows.filter((r) => r.kind === "farrier").length,
@@ -64,7 +63,6 @@ export function HealthGrid() {
   );
 
   const chips: StatusChip[] = [
-    { slug: "all", label: "All", count: counts.all },
     { slug: "vaccination", label: "Vaccination", count: counts.vaccination },
     { slug: "worming", label: "Worming", count: counts.worming },
     { slug: "farrier", label: "Farrier", count: counts.farrier },
@@ -73,7 +71,7 @@ export function HealthGrid() {
   ];
 
   const filtered = useMemo(() => {
-    if (active.has("all")) return rows;
+    if (active.size === 0) return rows;
     return rows.filter((r) => {
       if (active.has("vaccination") && r.kind === "vaccination") return true;
       if (active.has("worming") && r.kind === "worming") return true;
@@ -87,11 +85,8 @@ export function HealthGrid() {
   const toggleChip = (slug: string) => {
     setActive((prev) => {
       const next = new Set(prev);
-      if (slug === "all") return new Set(["all"]);
-      next.delete("all");
       if (next.has(slug)) next.delete(slug);
       else next.add(slug);
-      if (next.size === 0) next.add("all");
       return next;
     });
   };

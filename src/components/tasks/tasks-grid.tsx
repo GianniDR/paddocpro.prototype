@@ -36,7 +36,7 @@ export function TasksGrid() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState("");
-  const [active, setActive] = useState<Set<string>>(new Set(["all"]));
+  const [active, setActive] = useState<Set<string>>(new Set());
 
   const rows: Row[] = useMemo(() => {
     if (!tenantId) return [];
@@ -66,7 +66,6 @@ export function TasksGrid() {
     })();
     const todayEnd = todayStart + 86_400_000;
     return {
-      all: rows.length,
       pending: rows.filter((r) => r.status === "pending").length,
       in_progress: rows.filter((r) => r.status === "in_progress").length,
       overdue: rows.filter((r) => r.status !== "completed" && Date.parse(r.dueAt) < tenantNow)
@@ -82,7 +81,6 @@ export function TasksGrid() {
   }, [rows]);
 
   const chips: StatusChip[] = [
-    { slug: "all", label: "All", count: counts.all },
     { slug: "due_today", label: "Due today", count: counts.due_today },
     { slug: "overdue", label: "Overdue", count: counts.overdue },
     { slug: "pending", label: "Pending", count: counts.pending },
@@ -91,7 +89,7 @@ export function TasksGrid() {
   ];
 
   const filtered = useMemo(() => {
-    if (active.has("all")) return rows;
+    if (active.size === 0) return rows;
     const tenantNow = now().getTime();
     const todayStart = (() => {
       const d = now();
@@ -119,11 +117,8 @@ export function TasksGrid() {
   const toggleChip = (slug: string) => {
     setActive((prev) => {
       const next = new Set(prev);
-      if (slug === "all") return new Set(["all"]);
-      next.delete("all");
       if (next.has(slug)) next.delete(slug);
       else next.add(slug);
-      if (next.size === 0) next.add("all");
       return next;
     });
   };

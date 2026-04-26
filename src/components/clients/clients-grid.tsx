@@ -35,7 +35,7 @@ export function ClientsGrid() {
   const session = useSession();
   const tenantId = session?.tenantId ?? dataset.tenants[0]?.id;
   const [search, setSearch] = useState("");
-  const [active, setActive] = useState<Set<string>>(new Set(["all"]));
+  const [active, setActive] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useIdParam();
 
   const rows: Row[] = useMemo(() => {
@@ -81,7 +81,6 @@ export function ClientsGrid() {
   const counts = useMemo(() => {
     const tenantNow = now().getTime();
     return {
-      all: rows.length,
       outstanding: rows.filter((r) => r.outstandingPence > 0).length,
       overdue: rows.filter((r) => r.oldestOverdueDays > 30).length,
       portal: rows.filter((r) => r.portalAccessStatus === "active").length,
@@ -94,7 +93,6 @@ export function ClientsGrid() {
   }, [rows]);
 
   const chips: StatusChip[] = [
-    { slug: "all", label: "All", count: counts.all },
     { slug: "outstanding", label: "Outstanding", count: counts.outstanding },
     { slug: "overdue", label: "30+ overdue", count: counts.overdue },
     { slug: "portal", label: "Portal active", count: counts.portal },
@@ -102,7 +100,7 @@ export function ClientsGrid() {
   ];
 
   const filtered = useMemo(() => {
-    if (active.has("all")) return rows;
+    if (active.size === 0) return rows;
     const tenantNow = now().getTime();
     return rows.filter((r) => {
       if (active.has("outstanding") && r.outstandingPence > 0) return true;
@@ -119,11 +117,8 @@ export function ClientsGrid() {
   const toggleChip = (slug: string) => {
     setActive((prev) => {
       const next = new Set(prev);
-      if (slug === "all") return new Set(["all"]);
-      next.delete("all");
       if (next.has(slug)) next.delete(slug);
       else next.add(slug);
-      if (next.size === 0) next.add("all");
       return next;
     });
   };

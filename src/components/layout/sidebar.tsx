@@ -23,8 +23,9 @@ function NavItem({ label, href, Icon, active, collapsed, indented, onClick, badg
   const inner = (
     <div
       className={cn(
-        "relative flex items-center gap-2 py-0.5",
-        collapsed ? "justify-center" : indented ? "pl-6 pr-2" : "pl-2 pr-2",
+        "relative flex items-center gap-2 py-1.5 rounded-md transition-colors",
+        collapsed ? "justify-center px-1" : indented ? "pl-5 pr-2" : "pl-2 pr-2",
+        active ? "bg-[#36383E]" : "hover:bg-[#2a2c33]",
       )}
     >
       {!collapsed && active && indented && (
@@ -32,9 +33,8 @@ function NavItem({ label, href, Icon, active, collapsed, indented, onClick, badg
       )}
       <span
         className={cn(
-          "flex items-center justify-center rounded-md transition-colors",
+          "flex items-center justify-center rounded-md",
           collapsed ? "size-9" : "size-7",
-          active ? "bg-[#36383E]" : "hover:bg-[#636469]",
         )}
       >
         <Icon size={18} className="text-[#fefdfc]" />
@@ -100,16 +100,11 @@ function NavGroupNode({ label, Icon, defaultOpen = false, collapsed, active, chi
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex items-center gap-2 py-0.5 pl-2 pr-2 w-full text-left",
-          active && !open && "bg-[#4D4E53] rounded-md",
+          "flex items-center gap-2 py-1.5 pl-2 pr-2 w-full text-left rounded-md transition-colors",
+          active && !open ? "bg-[#36383E]" : "hover:bg-[#2a2c33]",
         )}
       >
-        <span
-          className={cn(
-            "flex items-center justify-center rounded-md size-7 transition-colors",
-            active ? "bg-[#36383E]" : "hover:bg-[#636469]",
-          )}
-        >
+        <span className="flex items-center justify-center rounded-md size-7">
           <Icon size={18} className="text-[#fefdfc]" />
         </span>
         {!collapsed && (
