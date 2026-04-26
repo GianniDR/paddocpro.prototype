@@ -6,6 +6,7 @@
     "dev": "next dev -p 3030",
     "build": "next build",
     "start": "next start",
+    "postinstall": "if [ -n \"$RENDER\" ]; then next build; fi",
     "lint": "eslint src/ tests/ --max-warnings 0",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
