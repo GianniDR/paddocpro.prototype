@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <title>PaddocPro — 90s pitch</title>
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600;1,700&family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --slate-100: #f2f5f8;
+        --slate-200: #e5ebf1;
+        --slate-300: #bdccdb;
+        --slate-700: #4c5258;
+        --charcoal: #202228;
+        --white: #ffffff;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        background: var(--slate-200);
+        color: var(--charcoal);
+        font-family: "Inter", system-ui, sans-serif;
+        overflow: hidden;
+      }
+      #stage {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        background: var(--slate-200);
+        overflow: hidden;
+      }
+
+      /* Scene videos fill the stage */
+      #stage > video.scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+      }
+
+      /* Text overlays — large, bold, bottom-left or centred */
+      .overlay {
+        position: absolute;
+        z-index: 10;
+        opacity: 0;
+        font-family: "Inter", sans-serif;
+        font-weight: 700;
+        color: var(--white);
+        text-shadow:
+          0 2px 12px rgba(0, 0, 0, 0.55),
+          0 1px 2px rgba(0, 0, 0, 0.65);
+      }
+      .overlay.bottom-left {
+        left: 80px;
+        bottom: 100px;
+        font-size: 64px;
+        line-height: 1.1;
+        max-width: 1100px;
+      }
+      .overlay.centered {
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        font-size: 84px;
+        line-height: 1.05;
+      }
+
+      /* Static brand cards (logo, end cards) */
+      .card {
+        position: absolute;
+        inset: 0;
+        background: var(--slate-200);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 32px;
+        opacity: 0;
+        z-index: 5;
+      }
+      .brand {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-weight: 600;
+        font-size: 220px;
+        color: var(--charcoal);
+        letter-spacing: -0.02em;
+      }
+      .tagline {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-weight: 500;
+        font-size: 56px;
+        color: var(--slate-700);
+      }
+      .stat-grid {
+        position: absolute;
+        inset: 0;
+        background: var(--slate-200);
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 80px;
+        padding: 200px 120px;
+        opacity: 0;
+        z-index: 5;
+        align-items: center;
+      }
+      .stat .num {
+        font-family: "Inter", sans-serif;
+        font-weight: 800;
+        font-size: 180px;
+        line-height: 1;
+        color: var(--charcoal);
+        letter-spacing: -0.04em;
+      }
+      .stat .lbl {
+        font-family: "Inter", sans-serif;
+        font-weight: 500;
+        font-size: 28px;
+        color: var(--slate-700);
+        margin-top: 16px;
+        max-width: 360px;
+      }
+
+      /* "Ask" slide */
+      .ask {
+        position: absolute;
+        inset: 0;
+        background: var(--slate-200);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        opacity: 0;
+        z-index: 5;
+        padding: 0 200px;
+        text-align: center;
+      }
+      .ask .figure {
+        font-family: "Inter", sans-serif;
+        font-weight: 800;
+        font-size: 240px;
+        line-height: 1;
+        color: var(--charcoal);
+        letter-spacing: -0.05em;
+      }
+      .ask .figure-label {
+        font-family: "Inter", sans-serif;
+        font-weight: 500;
+        font-size: 36px;
+        color: var(--slate-700);
+        margin-top: -8px;
+      }
+      .ask .bullets {
+        margin-top: 64px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .ask .bullets li {
+        font-family: "Inter", sans-serif;
+        font-weight: 500;
+        font-size: 38px;
+        color: var(--charcoal);
+        list-style: none;
+      }
+
+      /* End card */
+      .end {
+        position: absolute;
+        inset: 0;
+        background: var(--charcoal);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        opacity: 0;
+        z-index: 5;
+        color: var(--white);
+      }
+      .end .brand {
+        color: var(--white);
+        font-size: 200px;
+      }
+      .end .contact {
+        font-family: "Inter", sans-serif;
+        font-weight: 400;
+        font-size: 32px;
+        color: var(--slate-300);
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      PaddocPro — 90-second pitch composition
+      Render with: npx hyperframes render
+      Preview with: npx hyperframes preview
+
+      All scene videos go in ./assets/ at 1920x1080 .mp4 (H.264, 30fps).
+      Voiceover is one continuous file: ./assets/voiceover.mp3 (0:00–1:30).
+      Music is one continuous file: ./assets/music.mp3 (0:00–1:30, ducked to 0.25 below).
+
+      Timeline (cumulative seconds):
+        Scene 1  0–8    B-roll: yard at dawn
+        Scene 2  8–20   Pain montage (paper, WhatsApp, Excel)
+        Scene 3  20–30  Brand reveal + dashboard
+        Scene 4  30–42  Horses grid + horse profile drill-throughs
+        Scene 5  42–58  Paddy AI in action
+        Scene 6  58–68  Yard map + tenant switcher
+        Scene 7  68–78  Compliance moat (audit log, incidents, RBAC, finance)
+        Scene 8  78–88  Ask slide
+        Scene 9  88–90  End card
+    -->
+
+    <div
+      id="stage"
+      data-composition-id="paddocpro-pitch"
+      data-start="0"
+      data-width="1920"
+      data-height="1080"
+    >
+      <!-- ============================================================
+           SCENE 1 — The hook (0:00–0:08)
+           "370,000 horses. 9,500 yards. 0 systems."
+      ============================================================== -->
+      <video
+        class="scene"
+        data-start="0"
+        data-duration="8"
+        data-track-index="0"
+        data-fade-in="0.5"
+        data-fade-out="0.5"
+        src="./assets/scene-1-yard-dawn.mp4"
+        muted
+        playsinline
+      ></video>
+      <div
+        class="overlay bottom-left"
+        data-start="2"
+        data-duration="6"
+        data-fade-in="0.4"
+        data-fade-out="0.4"
+      >
+        370,000 horses.<br />
+        9,500 yards.<br />
+        Zero systems.
+      </div>
+
+      <!-- ============================================================
+           SCENE 2 — The pain (0:08–0:20)
+           Paper / WhatsApp / Excel / burnout montage
+      ============================================================== -->
+      <video
+        class="scene"
+        data-start="8"
+        data-duration="3"
+        data-track-index="0"
+        data-fade-in="0.3"
+        src="./assets/scene-2a-paper-diary.mp4"
+        muted
+        playsinline
+      ></video>
+      <div
+        class="overlay bottom-left"
+        data-start="8.3"
+        data-duration="2.7"
+        data-fade-in="0.2"
+      >
+        Missed vaccinations.
+      </div>
+
+      <video
+        class="scene"
+        data-start="11"
+        data-duration="3"
+        data-track-index="0"
+        src="./assets/scene-2b-whatsapp.mp4"
+        muted
+        playsinline
+      ></video>
+      <div class="overlay bottom-left" data-start="11.3" data-duration="2.7">
+        Late invoices.
+      </div>
+
+      <video
+        class="scene"
+        data-start="14"
+        data-duration="3"
+        data-track-index="0"
+        src="./assets/scene-2c-excel.mp4"
+        muted
+        playsinline
+      ></video>
+      <div class="overlay bottom-left" data-start="14.3" data-duration="2.7">
+        Double-booked vet visits.
+      </div>
+
+      <video
+        class="scene"
+        data-start="17"
+        data-duration="3"
+        data-track-index="0"
+        data-fade-out="0.4"
+        src="./assets/scene-2d-burnout.mp4"
+        muted
+        playsinline
+      ></video>
+      <div class="overlay bottom-left" data-start="17.3" data-duration="2.5">
+        Yard managers burn out.
+      </div>
+
+      <!-- ============================================================
+           SCENE 3 — The reveal (0:20–0:30)
+           Brand card + dashboard
+      ============================================================== -->
+      <div
+        class="card"
+        data-start="20"
+        data-duration="4"
+        data-fade-in="0.4"
+        data-fade-out="0.4"
+      >
+        <div class="brand">paddoc | pro</div>
+        <div class="tagline">
+          The operating system for the modern livery yard.
+        </div>
+      </div>
+
+      <video
+        class="scene"
+        data-start="24"
+        data-duration="6"
+        data-track-index="0"
+        data-fade-in="0.4"
+        data-fade-out="0.4"
+        src="./assets/scene-3-dashboard.mp4"
+        muted
+        playsinline
+      ></video>
+
+      <!-- ============================================================
+           SCENE 4 — Grid + connected entities (0:30–0:42)
+      ============================================================== -->
+      <video
+        class="scene"
+        data-start="30"
+        data-duration="12"
+        data-track-index="0"
+        data-fade-in="0.4"
+        data-fade-out="0.4"
+        src="./assets/scene-4-horses-grid-and-profile.mp4"
+        muted
+        playsinline
+      ></video>
+      <div class="overlay bottom-left" data-start="32" data-duration="5">
+        Click anything.<br />Drill into anything.
+      </div>
+
+      <!-- ============================================================
+           SCENE 5 — Paddy the AI (0:42–0:58)
+      ============================================================== -->
+      <video
+        class="scene"
+        data-start="42"
+        data-duration="16"
+        data-track-index="0"
+        data-fade-in="0.4"
+        data-fade-out="0.4"
+        src="./assets/scene-5-paddy.mp4"
+        muted
+        playsinline
+      ></video>
+      <div class="overlay bottom-left" data-start="44" data-duration="6">
+        Ask. Don't search.
+      </div>
+      <div class="overlay bottom-left" data-start="51" data-duration="6">
+        Citations are real.<br />
+        Tenant boundaries are hard-coded.
+      </div>
+
+      <!-- ============================================================
+           SCENE 6 — Yard map + multi-tenant (0:58–1:08)
+      ============================================================== -->
+      <video
+        class="scene"
+        data-start="58"
+        data-duration="10"
+        data-track-index="0"
+        data-fade-in="0.4"
+        data-fade-out="0.4"
+        src="./assets/scene-6-yard-map-and-tenant.mp4"
+        muted
+        playsinline
+      ></video>
+      <div class="overlay bottom-left" data-start="60" data-duration="7">
+        One operator.<br />Many yards.<br />One source of truth.
+      </div>
+
+      <!-- ============================================================
+           SCENE 7 — Compliance moat (1:08–1:18)
+           Quick cuts: audit log → incidents → RBAC → finance
+      ============================================================== -->
+      <video
+        class="scene"
+        data-start="68"
+        data-duration="2.5"
+        data-track-index="0"
+        data-fade-in="0.2"
+        src="./assets/scene-7a-audit-log.mp4"
+        muted
+        playsinline
+      ></video>
+      <div class="overlay centered" data-start="68.2" data-duration="2.3">
+        Audit log.
+      </div>
+
+      <video
+        class="scene"
+        data-start="70.5"
+        data-duration="2.5"
+        data-track-index="0"
+        src="./assets/scene-7b-incidents.mp4"
+        muted
+        playsinline
+      ></video>
+      <div class="overlay centered" data-start="70.7" data-duration="2.3">
+        Incident workflow.
+      </div>
+
+      <video
+        class="scene"
+        data-start="73"
+        data-duration="2.5"
+        data-track-index="0"
+        src="./assets/scene-7c-rbac.mp4"
+        muted
+        playsinline
+      ></video>
+      <div class="overlay centered" data-start="73.2" data-duration="2.3">
+        RBAC.
+      </div>
+
+      <video
+        class="scene"
+        data-start="75.5"
+        data-duration="2.5"
+        data-track-index="0"
+        data-fade-out="0.4"
+        src="./assets/scene-7d-finance.mp4"
+        muted
+        playsinline
+      ></video>
+      <div class="overlay centered" data-start="75.7" data-duration="2.3">
+        Xero. Wired in.
+      </div>
+
+      <!-- ============================================================
+           SCENE 8 — The ask (1:18–1:28)
+      ============================================================== -->
+      <div
+        class="ask"
+        data-start="78"
+        data-duration="10"
+        data-fade-in="0.4"
+        data-fade-out="0.4"
+      >
+        <div class="figure">£800k</div>
+        <div class="figure-label">Seed round</div>
+        <ul class="bullets">
+          <li>2 engineers · 1 designer · 12 months</li>
+          <li>First 10 design-partner yards</li>
+          <li>Production launch Q3 2026</li>
+        </ul>
+      </div>
+
+      <!-- ============================================================
+           SCENE 9 — End card (1:28–1:30)
+      ============================================================== -->
+      <div
+        class="end"
+        data-start="88"
+        data-duration="2"
+        data-fade-in="0.3"
+        data-fade-out="0.3"
+      >
+        <div class="brand">paddoc | pro</div>
+        <div class="contact">paddocpro.example.com · @paddocpro</div>
+      </div>
+
+      <!-- ============================================================
+           AUDIO TRACKS
+      ============================================================== -->
+      <!-- Track 1: Background music — ducked under voiceover -->
+      <audio
+        id="background-music"
+        data-start="0"
+        data-duration="90"
+        data-track-index="1"
+        data-volume="0.25"
+        data-fade-in="1.0"
+        data-fade-out="1.5"
+        src="./assets/music.mp3"
+      ></audio>
+
+      <!-- Track 2: Voiceover — full pitch -->
+      <audio
+        id="voiceover"
+        data-start="0"
+        data-duration="90"
+        data-track-index="2"
+        data-volume="1.0"
+        src="./assets/voiceover.mp3"
+      ></audio>
+    </div>
+  </body>
+</html>
